@@ -8,7 +8,7 @@ ARG NGINX_COMMIT=25a2efd97a3e
 ARG NGX_BROTLI_COMMIT=63ca02abdcf79c9e788d2eedcc388d2335902e52
 
 # https://github.com/google/boringssl
-ARG BORINGSSL_COMMIT=e1b8685770d0e82e5a4a3c5d24ad1602e05f2e83
+#ARG BORINGSSL_COMMIT=fae0964b3d44e94ca2a2d21f86e61dabe683d130
 
 # http://hg.nginx.org/njs / v0.8.1
 ARG NJS_COMMIT=a387eed79b90
@@ -26,7 +26,7 @@ ARG NGINX_GROUP_GID=101
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
-		--build=quic-$NGINX_COMMIT-boringssl-$BORINGSSL_COMMIT \
+		--build=quic-$NGINX_COMMIT \
 		--prefix=/etc/nginx \
 		--sbin-path=/usr/sbin/nginx \
 		--modules-path=/usr/lib/nginx/modules \
@@ -78,7 +78,7 @@ ARG CONFIG="\
 		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
 	"
 
-FROM alpine:3.17 AS base
+FROM alpine:3.19 AS base
 
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
@@ -137,20 +137,20 @@ RUN \
 	&& git submodule update --init --depth 1
 
 # hadolint ignore=SC2086
-RUN \
-  echo "Cloning boringssl ..." \
-  && cd /usr/src \
-  && git clone https://github.com/google/boringssl \
-  && cd boringssl \
-  && git checkout $BORINGSSL_COMMIT
+#RUN \
+#  echo "Cloning boringssl ..." \
+#  && cd /usr/src \
+#  && git clone https://github.com/google/boringssl \
+#  && cd boringssl \
+#  && git checkout $BORINGSSL_COMMIT
 
-RUN \
-  echo "Building boringssl ..." \
-  && cd /usr/src/boringssl \
-  && mkdir build \
-  && cd build \
-  && cmake -GNinja .. \
-  && ninja
+#RUN \
+#  echo "Building boringssl ..." \
+#  && cd /usr/src/boringssl \
+#  && mkdir build \
+#  && cd build \
+#  && cmake -GNinja .. \
+#  && ninja
 
 RUN \
   echo "Downloading headers-more-nginx-module ..." \
@@ -177,9 +177,6 @@ RUN \
   && mkdir -p /var/run/nginx/ \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
-      --with-cc-opt="-I../boringssl/include"   \
-      --with-ld-opt="-L../boringssl/build/ssl  \
-                     -L../boringssl/build/crypto" \
 	&& make -j"$(getconf _NPROCESSORS_ONLN)"
 
 RUN \
@@ -206,7 +203,7 @@ RUN \
 			| xargs -r apk info --installed \
 			| sort -u > /tmp/runDeps.txt
 
-FROM alpine:3.17
+FROM alpine:3.19
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
 ARG NGINX_USER_UID
