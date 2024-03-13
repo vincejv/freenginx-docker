@@ -26,20 +26,20 @@ docker pull ghcr.io/macbre/nginx-http3:latest
 
 ```
 $ docker run -it macbre/nginx-http3 nginx -V
-nginx version: nginx/1.25.3 (quic-25a2efd97a3e)
-built by gcc 13.2.1 20231014 (Alpine 13.2.1_git20231014)
+nginx version: nginx/1.25.4 (quic-89bff782528a)
+built by gcc 13.2.1 20231014 (Alpine 13.2.1_git20231014) 
 built with OpenSSL 3.1.4 24 Oct 2023
 TLS SNI support enabled
 configure arguments: 
-	--build=quic-25a2efd97a3e
+	--build=quic-89bff782528a 
 	--prefix=/etc/nginx 
 	--sbin-path=/usr/sbin/nginx 
 	--modules-path=/usr/lib/nginx/modules 
 	--conf-path=/etc/nginx/nginx.conf 
 	--error-log-path=/var/log/nginx/error.log 
 	--http-log-path=/var/log/nginx/access.log 
-	--pid-path=/var/run/nginx.pid 
-	--lock-path=/var/run/nginx.lock 
+	--pid-path=/var/run/nginx/nginx.pid 
+	--lock-path=/var/run/nginx/nginx.lock 
 	--http-client-body-temp-path=/var/cache/nginx/client_temp 
 	--http-proxy-temp-path=/var/cache/nginx/proxy_temp 
 	--http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp 
@@ -78,12 +78,12 @@ configure arguments:
 	--with-http_v2_module 
 	--with-http_v3_module 
 	--add-module=/usr/src/ngx_brotli 
-	--add-module=/usr/src/headers-more-nginx-module-0.34 
+	--add-module=/usr/src/headers-more-nginx-module-0.37 
 	--add-module=/usr/src/njs/nginx 
-	--add-dynamic-module=/usr/src/ngx_http_geoip2_module 
+	--add-dynamic-module=/usr/src/ngx_http_geoip2_module
 
 $ docker run -it macbre/nginx-http3 njs -v
-0.8.1
+0.8.3
 ```
 
 ## SSL Grade A+ handling
