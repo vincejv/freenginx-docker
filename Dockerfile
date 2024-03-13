@@ -1,21 +1,21 @@
 # https://hg.nginx.org/nginx/file/tip/src/core/nginx.h
-ARG NGINX_VERSION=1.25.3
+ARG NGINX_VERSION=1.25.4
 
 # https://hg.nginx.org/nginx
-ARG NGINX_COMMIT=25a2efd97a3e
+ARG NGINX_COMMIT=89bff782528a
 
 # https://github.com/google/ngx_brotli
-ARG NGX_BROTLI_COMMIT=63ca02abdcf79c9e788d2eedcc388d2335902e52
+ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
 # https://github.com/google/boringssl
 #ARG BORINGSSL_COMMIT=fae0964b3d44e94ca2a2d21f86e61dabe683d130
 
-# http://hg.nginx.org/njs / v0.8.1
-ARG NJS_COMMIT=a387eed79b90
+# http://hg.nginx.org/njs / v0.8.3
+ARG NJS_COMMIT=3aba7ee62080
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 # we want to have https://github.com/openresty/headers-more-nginx-module/commit/e536bc595d8b490dbc9cf5999ec48fca3f488632
-ARG HEADERS_MORE_VERSION=0.34
+ARG HEADERS_MORE_VERSION=0.37
 
 # https://github.com/leev/ngx_http_geoip2_module/releases
 ARG GEOIP2_VERSION=3.4
