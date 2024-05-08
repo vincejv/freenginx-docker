@@ -26,12 +26,12 @@ docker pull ghcr.io/macbre/nginx-http3:latest
 
 ```
 $ docker run -it macbre/nginx-http3 nginx -V
-nginx version: nginx/1.25.4 (quic-89bff782528a)
+nginx version: nginx/1.25.5 (quic-49dce50fad40)
 built by gcc 13.2.1 20231014 (Alpine 13.2.1_git20231014) 
 built with OpenSSL 3.1.4 24 Oct 2023
 TLS SNI support enabled
 configure arguments: 
-	--build=quic-89bff782528a 
+	--build=quic-49dce50fad40 
 	--prefix=/etc/nginx 
 	--sbin-path=/usr/sbin/nginx 
 	--modules-path=/usr/lib/nginx/modules 
@@ -83,7 +83,7 @@ configure arguments:
 	--add-dynamic-module=/usr/src/ngx_http_geoip2_module
 
 $ docker run -it macbre/nginx-http3 njs -v
-0.8.3
+0.8.4
 ```
 
 ## SSL Grade A+ handling
