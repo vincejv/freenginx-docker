@@ -1,8 +1,8 @@
 # https://hg.nginx.org/nginx/file/tip/src/core/nginx.h
-ARG NGINX_VERSION=1.25.5
+ARG NGINX_VERSION=1.27.0
 
-# https://hg.nginx.org/nginx
-ARG NGINX_COMMIT=49dce50fad40
+# https://hg.nginx.org/nginx-quic/
+ARG NGINX_COMMIT=ff0312de0112
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
@@ -124,7 +124,7 @@ WORKDIR /usr/src/
 
 RUN \
 	echo "Cloning nginx $NGINX_VERSION (rev $NGINX_COMMIT from 'default' branch) ..." \
-	&& hg clone -b default --rev $NGINX_COMMIT https://hg.nginx.org/nginx /usr/src/nginx-$NGINX_VERSION
+	&& hg clone -b default --rev $NGINX_COMMIT https://hg.nginx.org/nginx-quic /usr/src/nginx-$NGINX_VERSION
 
 RUN \
 	echo "Cloning brotli $NGX_BROTLI_COMMIT ..." \
