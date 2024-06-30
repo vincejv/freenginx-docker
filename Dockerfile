@@ -90,9 +90,16 @@ ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 ARG CONFIG
 
+ENV CFLAGS="-O3 -pipe -flto -fomit-frame-pointer" \
+    CXXFLAGS="$CFLAGS" \
+    CPPFLAGS="$CFLAGS" \
+    LDFLAGS="-O3 -Wl,--strip-all -Wl,--as-needed" \
+    CC=clang-18 \
+    CXX=clang++-18
+
 RUN \
 	apk add --no-cache --virtual .build-deps \
-		gcc \
+		clang18 \
 		libc-dev \
 		make \
 		musl-dev \
