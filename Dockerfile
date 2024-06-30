@@ -94,12 +94,12 @@ ENV CFLAGS="-O3 -pipe -flto=thin -fomit-frame-pointer -march=sandybridge" \
     CXXFLAGS="$CFLAGS" \
     CPPFLAGS="$CFLAGS" \
     LDFLAGS="-O3 -Wl,--strip-all -Wl,--as-needed" \
-    CC=clang-18 \
-    CXX=clang++-18
+    CC=clang-17 \
+    CXX=clang++-17
 
 RUN \
 	apk add --no-cache --virtual .build-deps \
-		clang18 \
+		clang17 \
 		libc-dev \
 		make \
 		musl-dev \
