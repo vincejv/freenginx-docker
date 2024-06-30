@@ -2,7 +2,7 @@
 ARG NGINX_VERSION=1.27.0
 
 # https://hg.nginx.org/nginx-quic/
-ARG NGINX_COMMIT=ff0312de0112
+ARG NGINX_COMMIT=02e9411009b9
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
@@ -78,7 +78,7 @@ ARG CONFIG="\
 		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
 	"
 
-FROM alpine:3.19 AS base
+FROM alpine:3.20 AS base
 
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
@@ -203,7 +203,7 @@ RUN \
 			| xargs -r apk info --installed \
 			| sort -u > /tmp/runDeps.txt
 
-FROM alpine:3.19
+FROM alpine:3.20
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
 ARG NGINX_USER_UID
