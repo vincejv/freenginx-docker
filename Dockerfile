@@ -72,6 +72,7 @@ ARG CONFIG="\
 		--with-mail \
 		--with-mail_ssl_module \
 		--with-compat \
+		--with-pcre-jit \
 		--with-file-aio \
 		--with-http_v2_module \
 		--with-http_v3_module \
