@@ -20,6 +20,9 @@ ARG HEADERS_MORE_VERSION=0.37
 # https://github.com/leev/ngx_http_geoip2_module/releases
 ARG GEOIP2_VERSION=3.4
 
+# https://www.openssl.org/source/
+ARG VERSION_OPENSSL=openssl-3.3.1
+
 # NGINX UID / GID
 ARG NGINX_USER_UID=100
 ARG NGINX_GROUP_GID=101
@@ -72,6 +75,7 @@ ARG CONFIG="\
 		--with-file-aio \
 		--with-http_v2_module \
 		--with-http_v3_module \
+		--with-openssl=/usr/src/$VERSION_OPENSSL \
 		--add-module=/usr/src/ngx_brotli \
 		--add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
 		--add-module=/usr/src/njs/nginx \
@@ -90,7 +94,10 @@ ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 ARG CONFIG
 
-ENV CFLAGS="-O3 -pipe -fomit-frame-pointer -march=sandybridge" \
+ENV VERSION_OPENSSL=openssl-3.3.1 \
+	SHA256_OPENSSL=777cd596284c883375a2a7a11bf5d2786fc5413255efab20c50d6ffe6d020b7e \
+	SOURCE_OPENSSL=https://www.openssl.org/source/ \
+	CFLAGS="-O3 -pipe -fomit-frame-pointer -funsafe-math-optimizations -march=sandybridge" \
     CXXFLAGS="$CFLAGS" \
     CPPFLAGS="$CFLAGS" \
     LDFLAGS="-O3 -Wl,--strip-all -Wl,--as-needed" \
@@ -100,6 +107,7 @@ ENV CFLAGS="-O3 -pipe -fomit-frame-pointer -march=sandybridge" \
 RUN \
 	apk add --no-cache --virtual .build-deps \
 		clang18 \
+		curl \
 		libc-dev \
 		make \
 		musl-dev \
@@ -128,6 +136,13 @@ RUN \
 		readline-dev
 
 WORKDIR /usr/src/
+
+RUN \
+	echo "Downloading OpenSSL source code ..." && \
+	curl -L $SOURCE_OPENSSL$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
+	echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
+	curl -L $SOURCE_OPENSSL$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
+	tar xzf openssl.tar.gz
 
 RUN \
 	echo "Cloning nginx $NGINX_VERSION (rev $NGINX_COMMIT from 'default' branch) ..." \
