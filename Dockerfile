@@ -84,7 +84,7 @@ ARG CONFIG="\
 		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
 	"
 
-FROM alpine:3.20 AS base
+FROM debian:bookworm AS base
 
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
@@ -107,35 +107,36 @@ ENV VERSION_OPENSSL=openssl-3.3.1 \
     CXX=clang++-18
 
 RUN \
-	apk add --no-cache --virtual .build-deps \
-		clang18 \
+	apt-get update && apt-get install -y --no-install-recommends \
 		curl \
-		libc-dev \
+		libc6-dev \
 		make \
-		musl-dev \
-		go \
-		ninja \
+		golang \
+		ninja-build \
 		mercurial \
-		openssl-dev \
-		pcre-dev \
-		zlib-dev \
-		linux-headers \
+		libssl-dev \
+		libpcre3-dev \
+		zlib1g-dev \
 		gnupg \
 		libxslt-dev \
-		gd-dev \
-		geoip-dev \
-		perl-dev \
-	&& apk add --no-cache --virtual .brotli-build-deps \
+		libgd-dev \
+		libgeoip-dev \
+		libperl-dev \
 		autoconf \
 		libtool \
 		automake \
 		git \
 		g++ \
 		cmake \
-	&& apk add --no-cache --virtual .geoip2-build-deps \
+		wget \
+		ca-certificates \
+		lsb-release \ 
+		software-properties-common \
 		libmaxminddb-dev \
-	&& apk add --no-cache --virtual .njs-build-deps \
-		readline-dev
+		libreadline-dev && \
+	# download install clang and llvm
+	wget https://apt.llvm.org/llvm.sh && \
+		chmod +x llvm.sh && ./llvm.sh 18
 
 WORKDIR /usr/src/
 
@@ -213,21 +214,9 @@ RUN \
 	\
 	# https://tools.ietf.org/html/rfc7919
 	# https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
-	&& wget -q https://ssl-config.mozilla.org/ffdhe2048.txt -O /etc/ssl/dhparam.pem \
-	\
-	# Bring in gettext so we can get `envsubst`, then throw
-	# the rest away. To do this, we need to install `gettext`
-	# then move `envsubst` out of the way so `gettext` can
-	# be deleted completely, then move `envsubst` back.
-	&& apk add --no-cache --virtual .gettext gettext \
-	\
-	&& scanelf --needed --nobanner /usr/sbin/nginx /usr/sbin/njs /usr/lib/nginx/modules/*.so /usr/bin/envsubst \
-			| awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
-			| sort -u \
-			| xargs -r apk info --installed \
-			| sort -u > /tmp/runDeps.txt
+	&& wget -q https://ssl-config.mozilla.org/ffdhe2048.txt -O /etc/ssl/dhparam.pem
 
-FROM alpine:3.20
+FROM debian:bookworm
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
 ARG NGINX_USER_UID
@@ -237,22 +226,28 @@ ENV NGINX_VERSION $NGINX_VERSION
 ENV NGINX_COMMIT $NGINX_COMMIT
 
 COPY --from=base /var/run/nginx/ /var/run/nginx/
-COPY --from=base /tmp/runDeps.txt /tmp/runDeps.txt
+# COPY --from=base /tmp/runDeps.txt /tmp/runDeps.txt
 COPY --from=base /etc/nginx /etc/nginx
 COPY --from=base /usr/lib/nginx/modules/*.so /usr/lib/nginx/modules/
 COPY --from=base /usr/sbin/nginx /usr/sbin/
-COPY --from=base /usr/local/lib/perl5/site_perl /usr/local/lib/perl5/site_perl
-COPY --from=base /usr/bin/envsubst /usr/local/bin/envsubst
+# COPY --from=base /usr/local/lib/perl5/site_perl /usr/local/lib/perl5/site_perl
+# COPY --from=base /usr/bin/envsubst /usr/local/bin/envsubst
 COPY --from=base /etc/ssl/dhparam.pem /etc/ssl/dhparam.pem
-
+# COPY --from=base /usr/lib/libcrypto.so* /usr/lib/
 COPY --from=base /usr/sbin/njs /usr/sbin/njs
 
 # hadolint ignore=SC2046
 RUN \
-	addgroup --gid $NGINX_GROUP_GID -S nginx \
-	&& adduser --uid $NGINX_USER_UID -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
-	&& apk add --no-cache --virtual .nginx-rundeps tzdata $(cat /tmp/runDeps.txt) \
-	&& rm /tmp/runDeps.txt \
+groupadd --gid $NGINX_GROUP_GID nginx \
+&& useradd --uid $NGINX_USER_UID --system --create-home --home-dir /var/cache/nginx --shell /usr/sbin/nologin --gid nginx nginx \
+	&& apt-get update \
+	&& apt-get install -y \
+		libpcre3 \
+		tzdata \
+		libssl3 \
+		libxml2 \
+		libbrotli1 \
+		libxslt1.1 \
 	&& ln -s /usr/lib/nginx/modules /etc/nginx/modules \
 	# forward request and error logs to docker log collector
 	&& mkdir /var/log/nginx \
