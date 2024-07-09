@@ -216,7 +216,7 @@ RUN \
 	# https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
 	&& wget -q https://ssl-config.mozilla.org/ffdhe2048.txt -O /etc/ssl/dhparam.pem
 
-FROM debian:bookworm
+FROM debian:bookworm-slim
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
 ARG NGINX_USER_UID
@@ -248,6 +248,11 @@ groupadd --gid $NGINX_GROUP_GID nginx \
 		libxml2 \
 		libbrotli1 \
 		libxslt1.1 \
+		wget \
+	# Clean image
+	&& apt-get clean autoclean \
+	&& apt-get autoremove --yes \
+	&& rm -rf /var/lib/{apt,dpkg,cache,log}/ \
 	&& ln -s /usr/lib/nginx/modules /etc/nginx/modules \
 	# forward request and error logs to docker log collector
 	&& mkdir /var/log/nginx \
