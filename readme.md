@@ -1,37 +1,37 @@
 ## What is this?
-[![Docker Image CI](https://github.com/macbre/docker-nginx-http3/actions/workflows/dockerimage.yml/badge.svg)](https://github.com/macbre/docker-nginx-http3/actions/workflows/dockerimage.yml)
+[![Docker Image CI](https://github.com/vincejv/nginx/actions/workflows/build.yml/badge.svg)](https://github.com/vincejv/nginx/actions/workflows/build.yml)
 
-Stable and up-to-date [nginx](https://nginx.org/en/CHANGES) with [QUIC + HTTP/3 support](https://nginx.org/en/docs/http/ngx_http_v3_module.html), [Google's `brotli` compression](https://github.com/google/ngx_brotli), [`njs` module](https://nginx.org/en/docs/njs/) and [Grade A+ SSL config](https://ssl-config.mozilla.org/)
+Stable and up-to-date [FreeNGINX](https://freenginx.org/en/) with [QUIC + HTTP/3 support](https://nginx.org/en/docs/http/ngx_http_v3_module.html), [Google's `brotli` compression](https://github.com/google/ngx_brotli), [`njs` module](https://nginx.org/en/docs/njs/) and [Grade A+ SSL config](https://ssl-config.mozilla.org/)
 
 ## How to use this image
 As this project is based on the official [nginx image](https://hub.docker.com/_/nginx/) look for instructions there. In addition to the standard configuration directives, you'll be able to use the brotli module specific ones, see [here for official documentation](https://github.com/google/ngx_brotli#configuration-directives)
 
 ```
-docker pull macbre/nginx-http3:latest
+docker pull vincejv/nginx:latest
 ```
 
-You can fetch an image from [Github Containers Registry](https://github.com/macbre/docker-nginx-brotli/pkgs/container/nginx-http3) as well:
+You can fetch an image from [Github Containers Registry](https://github.com/vincejv/freenginx-docker/pkgs/container/nginx) as well:
 
 ```
-docker pull ghcr.io/macbre/nginx-http3:latest
+docker pull ghcr.io/vincejv/nginx:latest
 ```
 
 ## What's inside
 
-* [built-in nginx modules](https://nginx.org/en/docs/)
+* [built-in FreeNGINX modules](https://nginx.org/en/docs/)
 * [`headers-more-nginx-module`](https://github.com/openresty/headers-more-nginx-module#readme) - sets and clears HTTP request and response headers
 * [`ngx_brotli`](https://github.com/google/ngx_brotli#configuration-directives) - adds [brotli response compression](https://datatracker.ietf.org/doc/html/rfc7932)
 * [`ngx_http_geoip2_module`](https://github.com/leev/ngx_http_geoip2_module#download-maxmind-geolite2-database-optional) - creates variables with values from the maxmind geoip2 databases based on the client IP
 * [`njs` module](https://nginx.org/en/docs/njs/) - a subset of the JavaScript language that allows extending nginx functionality
 
 ```
-$ docker run -it macbre/nginx-http3 nginx -V
-nginx version: nginx/1.27.0 (quic-ff0312de0112)
+$ docker run -it vincejv/nginx nginx -V
+nginx version: freenginx/1.27.2 (quic-2a847df38232)
 built by gcc 13.2.1 20231014 (Alpine 13.2.1_git20231014) 
-built with OpenSSL 3.1.5 30 Jan 2024 (running with OpenSSL 3.1.4 24 Oct 2023)
+built with OpenSSL 3.3.1 4 Jun 2024
 TLS SNI support enabled
 configure arguments: 
-	--build=quic-ff0312de0112 
+	--build=quic-2a847df38232
 	--prefix=/etc/nginx 
 	--sbin-path=/usr/sbin/nginx 
 	--modules-path=/usr/lib/nginx/modules 
@@ -82,7 +82,7 @@ configure arguments:
 	--add-module=/usr/src/njs/nginx 
 	--add-dynamic-module=/usr/src/ngx_http_geoip2_module
 
-$ docker run -it macbre/nginx-http3 njs -v
+$ docker run -it vincejv/nginx njs -v
 0.8.4
 ```
 
@@ -94,7 +94,7 @@ Please refer to [Mozilla's SSL Configuration Generator](https://ssl-config.mozil
     ssl_dhparam /etc/ssl/dhparam.pem;
 ```
 
-See [ssllabs.com test results for wbc.macbre.net](https://www.ssllabs.com/ssltest/analyze.html?d=wbc.macbre.net).
+See [ssllabs.com test results for matrix.vincejv.com](https://www.ssllabs.com/ssltest/analyze.html?d=matrix.vincejv.com).
 
 ## nginx config files includes
 
@@ -147,8 +147,8 @@ Refer to `run-docker.sh` script on how to run this container and properly mount 
 Building an image:
 
 ```
-docker pull ghcr.io/macbre/nginx-http3:latest
-DOCKER_BUILDKIT=1 docker build . -t macbre/nginx --cache-from=ghcr.io/macbre/nginx-http3:latest --progress=plain
+docker pull ghcr.io/vincejv/nginx:latest
+DOCKER_BUILDKIT=1 docker build . -t vincejv/nginx --cache-from=ghcr.io/vincejv/nginx:latest --progress=plain
 ```
 
 ### Docker Compose example
@@ -157,7 +157,7 @@ It is necessary to expose both UDP and TCP ports to be able to HTTP/3
 
 ```yaml
   nginx:
-    image: macbre/nginx-http3
+    image: vincejv/nginx
     ports:
       - '443:443/tcp'
       - '443:443/udp' # use UDP for usage of HTTP/3
