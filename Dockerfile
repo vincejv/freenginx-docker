@@ -78,6 +78,7 @@ ARG CONFIG="\
 		--with-http_v2_module \
 		--with-http_v3_module \
 		--with-openssl=/usr/src/$VERSION_OPENSSL \
+		--with-openssl-opt=enable-ktls \
 		--add-module=/usr/src/ngx_brotli \
 		--add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
 		--add-module=/usr/src/njs/nginx \
