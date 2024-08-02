@@ -2,7 +2,7 @@
 ARG NGINX_VERSION=1.27.3
 
 # https://hg.nginx.org/nginx-quic/
-ARG NGINX_COMMIT=e46e1ea89ccd
+ARG NGINX_COMMIT=3c71158f5a34
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
