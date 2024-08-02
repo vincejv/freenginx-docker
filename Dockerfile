@@ -20,6 +20,9 @@ ARG HEADERS_MORE_VERSION=0.37
 # https://github.com/leev/ngx_http_geoip2_module/releases
 ARG GEOIP2_VERSION=3.4
 
+# https://github.com/aperezdc/ngx-fancyindex
+ARG FANCYINDEX_COMMIT=cbc0d3fca4f06414612de441399393d4b3bbb315
+
 # https://www.openssl.org/source/
 ARG VERSION_OPENSSL=openssl-3.3.1
 
@@ -82,6 +85,7 @@ ARG CONFIG="\
 		--add-module=/usr/src/ngx_brotli \
 		--add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
 		--add-module=/usr/src/njs/nginx \
+		--add-module=/usr/src/ngx_http_fancyindex_module \
 		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
 	"
 
@@ -187,6 +191,10 @@ RUN \
 RUN \
   echo "Downloading ngx_http_geoip2_module ..." \
   && git clone --depth 1 --branch ${GEOIP2_VERSION} https://github.com/leev/ngx_http_geoip2_module /usr/src/ngx_http_geoip2_module
+
+  RUN \
+  echo "Downloading ngx_http_fancyindex_module ..." \
+  && git clone --depth 1 --branch ${FANCYINDEX_COMMIT} https://github.com/aperezdc/ngx-fancyindex /usr/src/ngx_http_fancyindex_module
 
 RUN \
   echo "Cloning and configuring njs ..." \
