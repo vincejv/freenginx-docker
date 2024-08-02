@@ -194,7 +194,7 @@ RUN \
 
   RUN \
   echo "Downloading ngx_http_fancyindex_module ..." \
-  && git clone --depth 1 --branch ${FANCYINDEX_COMMIT} https://github.com/aperezdc/ngx-fancyindex /usr/src/ngx_http_fancyindex_module
+  && git clone https://github.com/aperezdc/ngx-fancyindex /usr/src/ngx_http_fancyindex_module && cd /usr/src/ngx_http_fancyindex_module && git checkout ${FANCYINDEX_COMMIT}
 
 RUN \
   echo "Cloning and configuring njs ..." \
