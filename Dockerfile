@@ -103,7 +103,7 @@ ARG CONFIG
 
 ENV VERSION_OPENSSL=openssl-3.3.2 \
 	SHA256_OPENSSL=2e8a40b01979afe8be0bbfb3de5dc1c6709fedb46d6c89c10da114ab5fc3d281 \
-	SOURCE_OPENSSL=https://www.openssl.org/source/ \
+	SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download/ \
 	CFLAGS="-O3 -pipe -fomit-frame-pointer -funsafe-math-optimizations -march=sandybridge" \
     CXXFLAGS="$CFLAGS" \
     CPPFLAGS="$CFLAGS" \
@@ -147,9 +147,9 @@ WORKDIR /usr/src/
 
 RUN \
 	echo "Downloading OpenSSL source code ..." && \
-	curl -L $SOURCE_OPENSSL$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
+	curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
 	echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
-	curl -L $SOURCE_OPENSSL$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
+	curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
 	tar xzf openssl.tar.gz
 
 RUN \
