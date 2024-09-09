@@ -1,8 +1,8 @@
 # https://hg.nginx.org/nginx/file/tip/src/core/nginx.h
-ARG NGINX_VERSION=1.27.3
+ARG NGINX_VERSION=1.27.4
 
 # https://hg.nginx.org/nginx-quic/
-ARG NGINX_COMMIT=cf73b65983c2
+ARG NGINX_COMMIT=dbf76fdd109f
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
