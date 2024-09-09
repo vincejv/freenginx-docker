@@ -24,7 +24,7 @@ ARG GEOIP2_VERSION=3.4
 ARG FANCYINDEX_COMMIT=cbc0d3fca4f06414612de441399393d4b3bbb315
 
 # https://www.openssl.org/source/
-ARG VERSION_OPENSSL=openssl-3.3.1
+ARG VERSION_OPENSSL=openssl-3.3.2
 
 # NGINX UID / GID
 ARG NGINX_USER_UID=100
@@ -101,8 +101,8 @@ ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 ARG CONFIG
 
-ENV VERSION_OPENSSL=openssl-3.3.1 \
-	SHA256_OPENSSL=777cd596284c883375a2a7a11bf5d2786fc5413255efab20c50d6ffe6d020b7e \
+ENV VERSION_OPENSSL=openssl-3.3.2 \
+	SHA256_OPENSSL=2e8a40b01979afe8be0bbfb3de5dc1c6709fedb46d6c89c10da114ab5fc3d281 \
 	SOURCE_OPENSSL=https://www.openssl.org/source/ \
 	CFLAGS="-O3 -pipe -fomit-frame-pointer -funsafe-math-optimizations -march=sandybridge" \
     CXXFLAGS="$CFLAGS" \
