@@ -108,8 +108,8 @@ ENV VERSION_OPENSSL=openssl-3.3.2 \
     CXXFLAGS="$CFLAGS" \
     CPPFLAGS="$CFLAGS" \
     LDFLAGS="-O3 -Wl,--strip-all -Wl,--as-needed" \
-    CC=clang-18 \
-    CXX=clang++-18
+    CC=clang-19 \
+    CXX=clang++-19
 
 RUN \
 	apt-get update && apt-get install -y --no-install-recommends \
@@ -141,7 +141,7 @@ RUN \
 		libreadline-dev && \
 	# download install clang and llvm
 	wget https://apt.llvm.org/llvm.sh && \
-		chmod +x llvm.sh && ./llvm.sh 18
+		chmod +x llvm.sh && ./llvm.sh 19
 
 WORKDIR /usr/src/
 
