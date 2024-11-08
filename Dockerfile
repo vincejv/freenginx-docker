@@ -107,7 +107,7 @@ ARG GEOIP2_VERSION
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 ARG CONFIG
-ARG CFLAGS_OPT="-O3 -pipe -flto -fomit-frame-pointer -march=sandybridge"
+ARG CFLAGS_OPT="-O3 -pipe -fomit-frame-pointer -march=sandybridge"
 
 ENV VERSION_OPENSSL=openssl-3.4.0 \
 	SHA256_OPENSSL=e15dda82fe2fe8139dc2ac21a36d4ca01d5313c75f99f46c4e8a27709b7294bf \
