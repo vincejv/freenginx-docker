@@ -239,7 +239,8 @@ RUN \
   && mkdir -p /var/run/nginx/ \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
-	&& make -j"$(getconf _NPROCESSORS_ONLN)"
+	&& CFLAGS="-I/usr/src/quickjs" LDFLAGS="-L/usr/src/quickjs -lquickjs" \ 
+	   make -j"$(getconf _NPROCESSORS_ONLN)"
 
 RUN \
 	cd /usr/src/nginx-$NGINX_VERSION \
