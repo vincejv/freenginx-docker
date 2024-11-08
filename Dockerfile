@@ -36,6 +36,10 @@ ARG VERSION_OPENSSL=openssl-3.4.0
 ARG NGINX_USER_UID=100
 ARG NGINX_GROUP_GID=101
 
+# Generic CFLAGS across build
+ARG CFLAGS_OPT="-O3 -pipe -fomit-frame-pointer -march=sandybridge"
+ARG LDFLAGS_OPT="-O3 -Wl,--strip-all -Wl,--as-needed"
+
 # NGINX Native CC Opt
 ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge"
 ARG LD_OPT="-Wl,-Bsymbolic-functions -flto -ffat-lto-objects -flto -Wl,-z,relro -Wl,-z,now"
@@ -112,7 +116,7 @@ ARG GEOIP2_VERSION
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 ARG CONFIG
-ARG CFLAGS_OPT="-O3 -pipe -fomit-frame-pointer -march=sandybridge"
+ARG CFLAGS_OPT
 ARG CC_OPT
 ARG LD_OPT
 
@@ -122,7 +126,7 @@ ENV VERSION_OPENSSL=openssl-3.4.0 \
 	CFLAGS="$CFLAGS_OPT" \
     CXXFLAGS="$CFLAGS_OPT" \
     CPPFLAGS="$CFLAGS_OPT" \
-    LDFLAGS="-O3 -Wl,--strip-all -Wl,--as-needed" \
+    LDFLAGS="$LDFLAGS_OPT" \
     CC=clang-19 \
     CXX=clang++-19
 
@@ -245,9 +249,10 @@ RUN \
   echo "Building nginx ..." \
   && mkdir -p /var/run/nginx/ \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
-	&& ./auto/configure $CONFIG \
+	&& ./auto/configure \
 	  --with-cc-opt="$CC_OPT" \
 	  --with-ld-opt="$LD_OPT" \
+	  $CONFIG \
 	&& make -j"$(getconf _NPROCESSORS_ONLN)"
 
 RUN \
