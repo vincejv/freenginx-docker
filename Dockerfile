@@ -13,6 +13,9 @@ ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 # https://github.com/nginx/njs/releases/tag/0.8.7
 ARG NJS_COMMIT=ba6b9e157ef472dbcac17e32c55f3227daa3103c
 
+# https://github.com/bellard/quickjs/commits/master/
+ARG QUICKJS_COMMIT=6e2e68fd0896957f92eb6c242a2e048c1ef3cae0
+
 # https://github.com/openresty/headers-more-nginx-module#installation
 # we want to have https://github.com/openresty/headers-more-nginx-module/commit/e536bc595d8b490dbc9cf5999ec48fca3f488632
 ARG HEADERS_MORE_VERSION=0.37
@@ -115,6 +118,7 @@ ENV VERSION_OPENSSL=openssl-3.4.0 \
     CC=clang-19 \
     CXX=clang++-19
 
+# Development environment
 RUN \
 	apt-get update && apt-get install -y --no-install-recommends \
 		curl \
@@ -133,6 +137,7 @@ RUN \
 		libperl-dev \
 		autoconf \
 		libtool \
+		libzstd-dev \
 		automake \
 		git \
 		g++ \
@@ -204,6 +209,17 @@ RUN \
   echo "Downloading zstd-nginx-module ..." \
   && git clone https://github.com/tokers/zstd-nginx-module /usr/src/zstd-nginx-module && cd /usr/src/zstd-nginx-module && git checkout ${ZSTDNGINX_COMMIT}
 
+# QuickJS (njs dependency)
+RUN \
+  echo "Cloning and configuring QuickJS ..." \
+  && mkdir /usr/src/quickjs \
+  && cd /usr/src/quickjs \
+  && git init \
+  && git remote add origin https://github.com/bellard/quickjs.git \
+  && git fetch --depth 1 origin ${QUICKJS_COMMIT} \
+  && git checkout -q FETCH_HEAD \
+  && CFLAGS='-fPIC' make libquickjs.a
+
 RUN \
   echo "Cloning and configuring njs ..." \
   && mkdir /usr/src/njs \
@@ -256,6 +272,7 @@ COPY --from=base /etc/ssl/dhparam.pem /etc/ssl/dhparam.pem
 # COPY --from=base /usr/lib/libcrypto.so* /usr/lib/
 COPY --from=base /usr/sbin/njs /usr/sbin/njs
 
+# Runtime environment
 # hadolint ignore=SC2046
 RUN \
 groupadd --gid $NGINX_GROUP_GID nginx \
