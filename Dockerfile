@@ -27,7 +27,7 @@ ARG FANCYINDEX_COMMIT=cbc0d3fca4f06414612de441399393d4b3bbb315
 ARG ZSTDNGINX_COMMIT=f4ba115e0b0eaecde545e5f37db6aa18917d8f4b
 
 # https://www.openssl.org/source/
-ARG VERSION_OPENSSL=openssl-3.3.2
+ARG VERSION_OPENSSL=openssl-3.4.0
 
 # NGINX UID / GID
 ARG NGINX_USER_UID=100
@@ -105,8 +105,8 @@ ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 ARG CONFIG
 
-ENV VERSION_OPENSSL=openssl-3.3.2 \
-	SHA256_OPENSSL=2e8a40b01979afe8be0bbfb3de5dc1c6709fedb46d6c89c10da114ab5fc3d281 \
+ENV VERSION_OPENSSL=openssl-3.4.0 \
+	SHA256_OPENSSL=e15dda82fe2fe8139dc2ac21a36d4ca01d5313c75f99f46c4e8a27709b7294bf \
 	SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download/ \
 	CFLAGS="-O3 -pipe -flto -fomit-frame-pointer -march=sandybridge" \
     CXXFLAGS="$CFLAGS" \
@@ -196,7 +196,7 @@ RUN \
   echo "Downloading ngx_http_geoip2_module ..." \
   && git clone --depth 1 --branch ${GEOIP2_VERSION} https://github.com/leev/ngx_http_geoip2_module /usr/src/ngx_http_geoip2_module
 
-  RUN \
+RUN \
   echo "Downloading ngx_http_fancyindex_module ..." \
   && git clone https://github.com/aperezdc/ngx-fancyindex /usr/src/ngx_http_fancyindex_module && cd /usr/src/ngx_http_fancyindex_module && git checkout ${FANCYINDEX_COMMIT}
 
