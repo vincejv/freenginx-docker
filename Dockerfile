@@ -10,11 +10,11 @@ ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 # https://github.com/google/boringssl
 #ARG BORINGSSL_COMMIT=fae0964b3d44e94ca2a2d21f86e61dabe683d130
 
-# https://github.com/nginx/njs/releases/tag/0.8.7
-ARG NJS_COMMIT=ba6b9e157ef472dbcac17e32c55f3227daa3103c
+# https://github.com/nginx/njs/releases/tag/0.8.5
+ARG NJS_COMMIT=9d4bf6c60aa60a828609f64d1b5c50f71bb7ef62
 
 # https://github.com/bellard/quickjs/commits/master/
-ARG QUICKJS_COMMIT=6e2e68fd0896957f92eb6c242a2e048c1ef3cae0
+#ARG QUICKJS_COMMIT=6e2e68fd0896957f92eb6c242a2e048c1ef3cae0
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 # we want to have https://github.com/openresty/headers-more-nginx-module/commit/e536bc595d8b490dbc9cf5999ec48fca3f488632
@@ -211,15 +211,15 @@ RUN \
   && git clone https://github.com/tokers/zstd-nginx-module /usr/src/zstd-nginx-module && cd /usr/src/zstd-nginx-module && git checkout ${ZSTDNGINX_COMMIT}
 
 # QuickJS (njs dependency)
-RUN \
-  echo "Cloning and configuring QuickJS ..." \
-  && mkdir /usr/src/quickjs \
-  && cd /usr/src/quickjs \
-  && git init \
-  && git remote add origin https://github.com/bellard/quickjs.git \
-  && git fetch --depth 1 origin ${QUICKJS_COMMIT} \
-  && git checkout -q FETCH_HEAD \
-  && CFLAGS='-fPIC' make libquickjs.a
+# RUN \
+#   echo "Cloning and configuring QuickJS ..." \
+#   && mkdir /usr/src/quickjs \
+#   && cd /usr/src/quickjs \
+#   && git init \
+#   && git remote add origin https://github.com/bellard/quickjs.git \
+#   && git fetch --depth 1 origin ${QUICKJS_COMMIT} \
+#   && git checkout -q FETCH_HEAD \
+#   && CFLAGS='-fPIC' make libquickjs.a
 
 RUN \
   echo "Cloning and configuring njs ..." \
@@ -239,8 +239,7 @@ RUN \
   && mkdir -p /var/run/nginx/ \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
-	&& CFLAGS="-I/usr/src/quickjs" LDFLAGS="-L/usr/src/quickjs -lquickjs" \ 
-	   make -j"$(getconf _NPROCESSORS_ONLN)"
+	&& make -j"$(getconf _NPROCESSORS_ONLN)"
 
 RUN \
 	cd /usr/src/nginx-$NGINX_VERSION \
