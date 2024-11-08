@@ -107,13 +107,14 @@ ARG GEOIP2_VERSION
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 ARG CONFIG
+ARG CFLAGS_OPT="-O3 -pipe -flto -fomit-frame-pointer -march=sandybridge"
 
 ENV VERSION_OPENSSL=openssl-3.4.0 \
 	SHA256_OPENSSL=e15dda82fe2fe8139dc2ac21a36d4ca01d5313c75f99f46c4e8a27709b7294bf \
 	SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download/ \
-	CFLAGS="-O3 -pipe -flto -fomit-frame-pointer -march=sandybridge" \
-    CXXFLAGS="$CFLAGS" \
-    CPPFLAGS="$CFLAGS" \
+	CFLAGS="$CFLAGS_OPT" \
+    CXXFLAGS="$CFLAGS_OPT" \
+    CPPFLAGS="$CFLAGS_OPT" \
     LDFLAGS="-O3 -Wl,--strip-all -Wl,--as-needed" \
     CC=clang-19 \
     CXX=clang++-19
@@ -258,8 +259,8 @@ ARG NGINX_COMMIT
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 
-ENV NGINX_VERSION $NGINX_VERSION
-ENV NGINX_COMMIT $NGINX_COMMIT
+ENV NGINX_VERSION=$NGINX_VERSION \
+    NGINX_COMMIT=$NGINX_COMMIT
 
 COPY --from=base /var/run/nginx/ /var/run/nginx/
 # COPY --from=base /tmp/runDeps.txt /tmp/runDeps.txt
