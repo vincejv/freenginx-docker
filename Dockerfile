@@ -108,7 +108,7 @@ ARG CONFIG
 ENV VERSION_OPENSSL=openssl-3.3.2 \
 	SHA256_OPENSSL=2e8a40b01979afe8be0bbfb3de5dc1c6709fedb46d6c89c10da114ab5fc3d281 \
 	SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download/ \
-	CFLAGS="-O3 -pipe -fomit-frame-pointer -funsafe-math-optimizations -march=sandybridge" \
+	CFLAGS="-O3 -pipe -flto -fomit-frame-pointer -march=sandybridge" \
     CXXFLAGS="$CFLAGS" \
     CPPFLAGS="$CFLAGS" \
     LDFLAGS="-O3 -Wl,--strip-all -Wl,--as-needed" \
