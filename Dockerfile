@@ -36,6 +36,10 @@ ARG VERSION_OPENSSL=openssl-3.4.0
 ARG NGINX_USER_UID=100
 ARG NGINX_GROUP_GID=101
 
+# NGINX Native CC Opt
+ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge"
+ARG LD_OPT="-Wl,-Bsymbolic-functions -flto -ffat-lto-objects -flto -Wl,-z,relro -Wl,-z,now"
+
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
 		--build=quic-$NGINX_COMMIT \
@@ -46,7 +50,7 @@ ARG CONFIG="\
 		--error-log-path=/var/log/nginx/error.log \
 		--http-log-path=/var/log/nginx/access.log \
    		--pid-path=/var/run/nginx/nginx.pid \
-    		--lock-path=/var/run/nginx/nginx.lock \
+		--lock-path=/var/run/nginx/nginx.lock \
 		--http-client-body-temp-path=/var/cache/nginx/client_temp \
 		--http-proxy-temp-path=/var/cache/nginx/proxy_temp \
 		--http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
@@ -94,6 +98,7 @@ ARG CONFIG="\
 		--add-module=/usr/src/ngx_http_fancyindex_module \
 		--add-module=/usr/src/zstd-nginx-module \
 		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
+		--with-cc=clang-19 \
 	"
 
 FROM debian:bookworm AS base
@@ -108,6 +113,8 @@ ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 ARG CONFIG
 ARG CFLAGS_OPT="-O3 -pipe -fomit-frame-pointer -march=sandybridge"
+ARG CC_OPT
+ARG LD_OPT
 
 ENV VERSION_OPENSSL=openssl-3.4.0 \
 	SHA256_OPENSSL=e15dda82fe2fe8139dc2ac21a36d4ca01d5313c75f99f46c4e8a27709b7294bf \
@@ -239,6 +246,8 @@ RUN \
   && mkdir -p /var/run/nginx/ \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
+	  --with-cc-opt="$CC_OPT" \
+	  --with-ld-opt="$LD_OPT" \
 	&& make -j"$(getconf _NPROCESSORS_ONLN)"
 
 RUN \
