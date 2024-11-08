@@ -23,6 +23,9 @@ ARG GEOIP2_VERSION=3.4
 # https://github.com/aperezdc/ngx-fancyindex
 ARG FANCYINDEX_COMMIT=cbc0d3fca4f06414612de441399393d4b3bbb315
 
+# https://github.com/tokers/zstd-nginx-module
+ARG ZSTDNGINX_COMMIT=f4ba115e0b0eaecde545e5f37db6aa18917d8f4b
+
 # https://www.openssl.org/source/
 ARG VERSION_OPENSSL=openssl-3.3.2
 
@@ -86,6 +89,7 @@ ARG CONFIG="\
 		--add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
 		--add-module=/usr/src/njs/nginx \
 		--add-module=/usr/src/ngx_http_fancyindex_module \
+		--add-module=/usr/src/zstd-nginx-module \
 		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
 	"
 
@@ -197,6 +201,10 @@ RUN \
   && git clone https://github.com/aperezdc/ngx-fancyindex /usr/src/ngx_http_fancyindex_module && cd /usr/src/ngx_http_fancyindex_module && git checkout ${FANCYINDEX_COMMIT}
 
 RUN \
+  echo "Downloading zstd-nginx-module ..." \
+  && git clone https://github.com/tokers/zstd-nginx-module /usr/src/zstd-nginx-module && cd /usr/src/zstd-nginx-module && git checkout ${ZSTDNGINX_COMMIT}
+
+RUN \
   echo "Cloning and configuring njs ..." \
   && cd /usr/src \
   && hg clone --rev ${NJS_COMMIT} http://hg.nginx.org/njs \
@@ -257,6 +265,7 @@ groupadd --gid $NGINX_GROUP_GID nginx \
 		libxml2 \
 		libbrotli1 \
 		libxslt1.1 \
+		libzstd1 \
 		wget \
 	# Clean image
 	&& apt-get clean autoclean \
