@@ -102,7 +102,7 @@ ARG CONFIG="\
 		--add-module=/usr/src/ngx_http_fancyindex_module \
 		--add-module=/usr/src/zstd-nginx-module \
 		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
-		--with-cc=clang-19 \
+		--with-cc=clang-20 \
 	"
 
 FROM debian:bookworm AS base
@@ -128,8 +128,8 @@ ENV VERSION_OPENSSL=openssl-3.4.1 \
     CXXFLAGS="$CFLAGS_OPT" \
     CPPFLAGS="$CFLAGS_OPT" \
     LDFLAGS="$LDFLAGS_OPT" \
-    CC=clang-19 \
-    CXX=clang++-19
+    CC=clang-20 \
+    CXX=clang++-20
 
 # Development environment
 RUN \
@@ -163,7 +163,7 @@ RUN \
 		libreadline-dev && \
 	# download install clang and llvm
 	wget https://apt.llvm.org/llvm.sh && \
-		chmod +x llvm.sh && ./llvm.sh 19
+		chmod +x llvm.sh && ./llvm.sh 20
 
 WORKDIR /usr/src/
 
