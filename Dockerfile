@@ -18,7 +18,7 @@ ARG QUICKJS_COMMIT=2634856087f735741d5d811677c285d9427e645d
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 # we want to have https://github.com/openresty/headers-more-nginx-module/commit/e536bc595d8b490dbc9cf5999ec48fca3f488632
-ARG HEADERS_MORE_VERSION=0.37
+ARG HEADERS_MORE_VERSION=0.38
 
 # https://github.com/leev/ngx_http_geoip2_module/releases
 ARG GEOIP2_VERSION=3.4
