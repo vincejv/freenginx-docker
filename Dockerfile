@@ -10,11 +10,11 @@ ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 # https://github.com/google/boringssl
 #ARG BORINGSSL_COMMIT=fae0964b3d44e94ca2a2d21f86e61dabe683d130
 
-# https://github.com/nginx/njs/releases/tag/0.8.9
-ARG NJS_COMMIT=b87ad67adb2c557bd96e52a3221748a7ba028858
+# https://github.com/nginx/njs/releases/tag/0.8.7
+# ARG NJS_COMMIT=ba6b9e157ef472dbcac17e32c55f3227daa3103c
 
 # https://github.com/bellard/quickjs/commits/master/
-ARG QUICKJS_COMMIT=2634856087f735741d5d811677c285d9427e645d
+# ARG QUICKJS_COMMIT=6e2e68fd0896957f92eb6c242a2e048c1ef3cae0
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 # we want to have https://github.com/openresty/headers-more-nginx-module/commit/e536bc595d8b490dbc9cf5999ec48fca3f488632
@@ -44,8 +44,8 @@ ARG LDFLAGS_OPT="-O3 -Wl,--strip-all -Wl,--as-needed"
 # ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs"
 # ARG LD_OPT="-Wl,-Bsymbolic-functions -flto -ffat-lto-objects -flto -Wl,-z,relro -Wl,-z,now -L /usr/src/quickjs"
 
-ARG CC_OPT="-O3 -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs"
-ARG LD_OPT="-Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -L /usr/src/quickjs"
+ARG CC_OPT="-O3 -fomit-frame-pointer -march=sandybridge"
+ARG LD_OPT="-Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now"
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
@@ -101,7 +101,6 @@ ARG CONFIG="\
 		--with-openssl-opt=enable-ktls \
 		--add-module=/usr/src/ngx_brotli \
 		--add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
-		--add-module=/usr/src/njs/nginx \
 		--add-module=/usr/src/ngx_http_fancyindex_module \
 		--add-module=/usr/src/zstd-nginx-module \
 		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
@@ -226,28 +225,29 @@ RUN \
   && git clone https://github.com/tokers/zstd-nginx-module /usr/src/zstd-nginx-module && cd /usr/src/zstd-nginx-module && git checkout ${ZSTDNGINX_COMMIT}
 
 # QuickJS (njs dependency)
-RUN \
-  echo "Cloning and configuring QuickJS ..." \
-  && mkdir /usr/src/quickjs \
-  && cd /usr/src/quickjs \
-  && git init \
-  && git remote add origin https://github.com/bellard/quickjs.git \
-  && git fetch --depth 1 origin ${QUICKJS_COMMIT} \
-  && git checkout -q FETCH_HEAD \
-  && CFLAGS='-fPIC' make libquickjs.a
+# RUN \
+#   echo "Cloning and configuring QuickJS ..." \
+#   && mkdir /usr/src/quickjs \
+#   && cd /usr/src/quickjs \
+#   && git init \
+#   && git remote add origin https://github.com/bellard/quickjs.git \
+#   && git fetch --depth 1 origin ${QUICKJS_COMMIT} \
+#   && git checkout -q FETCH_HEAD \
+#   && CFLAGS='-fPIC' make libquickjs.a
+#   && echo "quickjs $(cat VERSION)"
 
-RUN \
-  echo "Cloning and configuring njs ..." \
-  && mkdir /usr/src/njs \
-  && cd /usr/src/njs \
-  && git init \
-  && git remote add origin https://github.com/nginx/njs.git \
-  && git fetch --depth 1 origin ${NJS_COMMIT} \
-  && git checkout -q FETCH_HEAD \
-  && ./configure \
-  && make njs \
-  && mv /usr/src/njs/build/njs /usr/sbin/njs \
-  && echo "njs v$(njs -v)"
+# RUN \
+#   echo "Cloning and configuring njs ..." \
+#   && mkdir /usr/src/njs \
+#   && cd /usr/src/njs \
+#   && git init \
+#   && git remote add origin https://github.com/nginx/njs.git \
+#   && git fetch --depth 1 origin ${NJS_COMMIT} \
+#   && git checkout -q FETCH_HEAD \
+#   && ./configure \
+#   && make njs \
+#   && mv /usr/src/njs/build/njs /usr/sbin/njs \
+#   && echo "njs v$(njs -v)"
 
 RUN \
   echo "Building nginx ..." \
@@ -289,7 +289,7 @@ COPY --from=base /usr/sbin/nginx /usr/sbin/
 # COPY --from=base /usr/bin/envsubst /usr/local/bin/envsubst
 COPY --from=base /etc/ssl/dhparam.pem /etc/ssl/dhparam.pem
 # COPY --from=base /usr/lib/libcrypto.so* /usr/lib/
-COPY --from=base /usr/sbin/njs /usr/sbin/njs
+# COPY --from=base /usr/sbin/njs /usr/sbin/njs
 
 # Runtime environment
 # hadolint ignore=SC2046
@@ -324,7 +324,7 @@ COPY ssl_common.conf /etc/nginx/conf.d/ssl_common.conf
 RUN env | sort
 
 # njs version
-RUN njs -v
+# RUN njs -v
 
 # test the configuration
 RUN nginx -V; nginx -t
