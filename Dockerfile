@@ -13,8 +13,8 @@ ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 # https://github.com/nginx/njs/releases/tag/0.9.0
 ARG NJS_COMMIT=fcb99b68f86a72c96e21b81b3b78251174dbd3bf
 
-# https://github.com/bellard/quickjs/commits/master/
-ARG QUICKJS_COMMIT=2634856087f735741d5d811677c285d9427e645d
+# https://github.com/bellard/quickjs/commits/19abf1888db5884a5758036ff6e7fa2b340acedc/
+ARG QUICKJS_COMMIT=19abf1888db5884a5758036ff6e7fa2b340acedc
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 # we want to have https://github.com/openresty/headers-more-nginx-module/commit/e536bc595d8b490dbc9cf5999ec48fca3f488632
