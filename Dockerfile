@@ -10,8 +10,8 @@ ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 # https://github.com/google/boringssl
 #ARG BORINGSSL_COMMIT=fae0964b3d44e94ca2a2d21f86e61dabe683d130
 
-# https://github.com/nginx/njs/releases/tag/0.8.9
-ARG NJS_COMMIT=b87ad67adb2c557bd96e52a3221748a7ba028858
+# https://github.com/nginx/njs/releases/tag/0.9.0
+ARG NJS_COMMIT=fcb99b68f86a72c96e21b81b3b78251174dbd3bf
 
 # https://github.com/bellard/quickjs/commits/master/
 ARG QUICKJS_COMMIT=2634856087f735741d5d811677c285d9427e645d
