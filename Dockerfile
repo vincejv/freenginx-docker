@@ -2,7 +2,8 @@
 ARG NGINX_VERSION=1.29.1
 
 # https://github.com/freenginx/nginx
-ARG NGINX_COMMIT=1edc133c0d625ad20fc352dbdf98389f48affcb6
+# freenginx-ech fork
+ARG NGINX_COMMIT=ac09f9cb8ddb23c025a237028fe15aaf2fcb8030
 ARG NGINX_REV=352c8eb2b67c
 
 # https://github.com/google/ngx_brotli
@@ -31,7 +32,8 @@ ARG FANCYINDEX_COMMIT=cbc0d3fca4f06414612de441399393d4b3bbb315
 ARG ZSTDNGINX_COMMIT=f4ba115e0b0eaecde545e5f37db6aa18917d8f4b
 
 # https://www.openssl.org/source/
-ARG VERSION_OPENSSL=openssl-3.5.2
+#ARG VERSION_OPENSSL=openssl-3.5.2
+ARG VERSION_OPENSSL=openssl-feature-ech
 
 # NGINX UID / GID
 ARG NGINX_USER_UID=100
@@ -176,9 +178,10 @@ WORKDIR /usr/src/
 
 RUN \
 	echo "Downloading OpenSSL source code ..." && \
-	curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
-	echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
-	curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
+	# curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
+	curl -L https://github.com/openssl/openssl/archive/refs/heads/feature/ech.tar.gz -o openssl.tar.gz && \
+	# echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
+	# curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
 	tar xzf openssl.tar.gz
 
 RUN \
@@ -187,7 +190,7 @@ RUN \
 	&& mkdir /usr/src/nginx-$NGINX_VERSION \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& git init \
-	&& git remote add origin https://github.com/freenginx/nginx.git \
+	&& git remote add origin https://github.com/vincejv/freenginx-ech.git \
 	&& git fetch --depth 1 origin ${NGINX_COMMIT} \
 	&& git checkout -q FETCH_HEAD
 
