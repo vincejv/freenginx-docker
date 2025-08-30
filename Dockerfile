@@ -1,8 +1,9 @@
 # https://hg.nginx.org/nginx/file/tip/src/core/nginx.h
 ARG NGINX_VERSION=1.29.1
 
-# https://hg.nginx.org/nginx-quic/
-ARG NGINX_COMMIT=352c8eb2b67c
+# https://github.com/freenginx/nginx
+ARG NGINX_COMMIT=1edc133c0d625ad20fc352dbdf98389f48affcb6
+ARG NGINX_REV=352c8eb2b67c
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
@@ -46,7 +47,7 @@ ARG LD_OPT="-Wl,-Bsymbolic-functions -flto -ffat-lto-objects -flto -Wl,-z,relro 
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
-		--build=quic-$NGINX_COMMIT \
+		--build=quic-$NGINX_REV \
 		--prefix=/etc/nginx \
 		--sbin-path=/usr/sbin/nginx \
 		--modules-path=/usr/lib/nginx/modules \
@@ -181,7 +182,13 @@ RUN \
 
 RUN \
 	echo "Cloning nginx $NGINX_VERSION (rev $NGINX_COMMIT from 'default' branch) ..." \
-	&& hg clone -b default --rev $NGINX_COMMIT https://freenginx.org/hg/nginx/ /usr/src/nginx-$NGINX_VERSION
+	# && hg clone -b default --rev $NGINX_COMMIT https://freenginx.org/hg/nginx/ /usr/src/nginx-$NGINX_VERSION
+	&& mkdir /usr/src/nginx-$NGINX_VERSION \
+	&& cd /usr/src/nginx-$NGINX_VERSION \
+	&& git init \
+	&& git remote add origin https://github.com/freenginx/nginx.git \
+	&& git fetch --depth 1 origin ${NGINX_COMMIT} \
+	&& git checkout -q FETCH_HEAD
 
 RUN \
 	echo "Cloning brotli $NGX_BROTLI_COMMIT ..." \
