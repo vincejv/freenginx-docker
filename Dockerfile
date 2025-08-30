@@ -299,7 +299,7 @@ RUN \
 groupadd --gid $NGINX_GROUP_GID nginx \
 && useradd --uid $NGINX_USER_UID --system --create-home --home-dir /var/cache/nginx --shell /usr/sbin/nologin --gid nginx nginx \
 	&& apt-get update \
-	&& apt-get install -y \
+	&& apt-get install -y --no-install-recommends \
 		libpcre3 \
 		libjemalloc2 \
 		tzdata \
