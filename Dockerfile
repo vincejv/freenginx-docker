@@ -41,8 +41,8 @@ ARG CFLAGS_OPT="-O3 -pipe -fomit-frame-pointer -Wno-cast-function-type-mismatch 
 ARG LDFLAGS_OPT="-O3 -Wl,--strip-all -Wl,--as-needed"
 
 # NGINX Native CC Opt
-ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs"
-ARG LD_OPT="-Wl,-Bsymbolic-functions -flto -ffat-lto-objects -flto -Wl,-z,relro -Wl,-z,now -L /usr/src/quickjs"
+ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs -DTCP_FASTOPEN=23"
+ARG LD_OPT="-Wl,-Bsymbolic-functions -flto -ffat-lto-objects -flto -Wl,-z,relro -Wl,-z,now -L /usr/src/quickjs -ljemalloc"
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
@@ -94,7 +94,11 @@ ARG CONFIG="\
 		--with-file-aio \
 		--with-http_v2_module \
 		--with-http_v3_module \
+		--without-mail_pop3_module \
+    	--without-mail_imap_module \
+    	--without-mail_smtp_module \
 		--with-openssl=/usr/src/$VERSION_OPENSSL \
+		--with-openssl-opt=enable-quic \
 		--with-openssl-opt=enable-ktls \
 		--add-module=/usr/src/ngx_brotli \
 		--add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
@@ -160,6 +164,7 @@ RUN \
 		lsb-release \ 
 		software-properties-common \
 		libmaxminddb-dev \
+		libjemalloc-dev \
 		libreadline-dev && \
 	# download install clang and llvm
 	wget https://apt.llvm.org/llvm.sh && \
