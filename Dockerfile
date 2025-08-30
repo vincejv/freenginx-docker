@@ -301,6 +301,7 @@ groupadd --gid $NGINX_GROUP_GID nginx \
 	&& apt-get update \
 	&& apt-get install -y \
 		libpcre3 \
+		libjemalloc2 \
 		tzdata \
 		libssl3 \
 		libxml2 \
