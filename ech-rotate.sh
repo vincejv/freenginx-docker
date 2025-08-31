@@ -1,11 +1,16 @@
 #!/bin/bash
 # ech-rotate.sh - Rotate ECH keys, reload nginx, and update Cloudflare DNS
 
-set -euo pipefail
+set -uo pipefail
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ech-rotate.sh: $*" >> "$LOGFILE"
 }
+
+error_trap() {
+    log "An error occurred at line $1"
+}
+trap 'error_trap $LINENO' ERR
 
 # Configurable via environment variables
 DOMAIN="${DOMAIN:?Must set DOMAIN}"
@@ -27,7 +32,7 @@ else
 fi
 
 rotate_ech() {
-    mkdir -p "$ECH_DIR"
+    mkdir -p "$ECH_DIR" || log "Failed to create $ECH_DIR"
 
     # 1. Generate new ECH key
     NEW_KEY="$ECH_DIR/$DOMAIN.$(date +%Y%m%d%H).pem.ech"
@@ -101,7 +106,7 @@ rotate_ech() {
         CF_RESULT=$(curl -s -X "$METHOD" "$URL" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json" \
-            --data "$UPDATED_DATA")
+            --data "$UPDATED_DATA") || log "Failed to push DNS record for $d"
 
         if echo "$CF_RESULT" | grep -q '"success":true'; then
             log "Updated ech for $d (record $RECORD_ID)"
@@ -119,7 +124,7 @@ rotate_ech() {
 if [[ "$ECH_ROTATION" == "true" ]]; then
     log "Running in loop mode (ECH_ROTATION=true)"
     while true; do
-        rotate_ech
+        rotate_ech || log "rotate_ech failed, will retry next round"
         sleep "${ECH_ROTATION_INTERVAL:-3600}"
     done
 else
