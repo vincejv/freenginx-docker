@@ -76,12 +76,10 @@ rotate_ech() {
 
         if [[ "$RECORD_ID" == "null" ]]; then
             log "No HTTPS record found for $d, inserting new HTTPS record"
-            UPDATED_DATA=$(jq -n --arg name "$d" --arg ech "$ECHCONFIG" '{
-                type: "HTTPS",
-                name: $name,
+            UPDATED_DATA=$(jq -n --arg ech "$ECHCONFIG" '{
                 value: "ech=\"\($ech)\"",
-                ttl: 1,
-                proxied: false
+                priority: "1",
+                target: ".",
             }')
             METHOD="POST"
             URL="$CF_ZONE_URL/$CF_ZONE_ID/dns_records"
@@ -99,6 +97,7 @@ rotate_ech() {
             URL="$CF_ZONE_URL/$CF_ZONE_ID/dns_records/$RECORD_ID"
         fi
 
+        UPDATED_DATA=$(jq -n --arg name "$d" --argjson data "$UPDATED_DATA" '{type:"HTTPS", name:$name, data:$data}')
         log "Pushing updated HTTPS record for $d: $UPDATED_DATA"
 
         sleep 5 # sleep for 5 in between
