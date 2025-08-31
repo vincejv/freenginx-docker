@@ -95,6 +95,8 @@ ARG CONFIG="\
 		--with-file-aio \
 		--with-http_v2_module \
 		--with-http_v3_module \
+		--without-http_browser_module \
+		--without-http_empty_gif_module \
 		--without-mail_pop3_module \
     	--without-mail_imap_module \
     	--without-mail_smtp_module \
