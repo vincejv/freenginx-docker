@@ -12,6 +12,7 @@ DOMAIN="${DOMAIN:?Must set DOMAIN}"
 ECH_DIR="${ECH_DIR:-/etc/nginx/echkeys}"
 PIDFILE="${PIDFILE:-/var/run/nginx/nginx.pid}"
 LOGFILE="${LOGFILE:-/var/log/nginx/access.log}"
+CF_ZONE_URL="https://api.cloudflare.com/client/v4/zones"
 CF_ZONE_ID="${CF_ZONE_ID:?Must set CF_ZONE_ID}"
 CF_API_TOKEN="${CF_API_TOKEN:?Must set CF_API_TOKEN}"
 SUBDOMAINS="${SUBDOMAINS:?Must set SUBDOMAINS (space-separated list)}"
@@ -61,7 +62,7 @@ rotate_ech() {
 
     # 5. Publish HTTPS DNS record to Cloudflare (update only ech field)
     for d in "${SUBDOMAINS_ARR[@]}"; do
-        RECORD=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records?type=HTTPS&name=$d" \
+        RECORD=$(curl -s -X GET "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS&name=$d" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json")
 
@@ -70,26 +71,37 @@ rotate_ech() {
 
         if [[ "$RECORD_ID" == "null" ]]; then
             log "No HTTPS record found for $d, inserting new HTTPS record"
+            UPDATED_DATA=$(jq -n --arg name "$d" --arg ech "$ECHCONFIG" '{
+                type: "HTTPS",
+                name: $name,
+                value: "ech=\"\($ech)\"",
+                ttl: 1,
+                proxied: false
+            }')
+            METHOD="POST"
+            URL="$CF_ZONE_URL/$CF_ZONE_ID/dns_records"
         else
             log "HTTPS record found for $d, updating ech public key"
+            # Replace the ech record in HTTPS DNS record
+            UPDATED_DATA=$(echo "$RECORD_DATA" \
+            | jq --arg ECH "$ECHCONFIG" '
+                if .value | test("ech=")
+                then .value |= sub("ech=\"[^\"]*\""; "ech=\"\($ECH)\"")
+                else .value += " ech=\"\($ECH)\""
+                end
+            ')
+            METHOD="PUT"
+            URL="$CF_ZONE_URL/$CF_ZONE_ID/dns_records/$RECORD_ID"
         fi
 
-        # Replace the ech record in HTTPS DNS record
-        UPDATED_DATA=$(echo "$RECORD_DATA" \
-        | jq --arg ECH "$ECHCONFIG" '
-            if .value | test("ech=")
-            then .value |= sub("ech=\"[^\"]*\""; "ech=\"\($ECH)\"")
-            else .value += " ech=\"\($ECH)\""
-            end
-        ')
         log "Pushing updated HTTPS record for $d: $UPDATED_DATA"
 
         sleep 5 # sleep for 5 in between
 
-        CF_RESULT=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/$RECORD_ID" \
+        CF_RESULT=$(curl -s -X "$METHOD" "$URL" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json" \
-            --data "$(jq -n --arg name "$d" --argjson data "$UPDATED_DATA" '{type:"HTTPS", name:$name, data:$data}')")
+            --data "$UPDATED_DATA")
 
         if echo "$CF_RESULT" | grep -q '"success":true'; then
             log "Updated ech for $d (record $RECORD_ID)"
