@@ -121,7 +121,8 @@ rotate_ech() {
 
 # Run once or loop depending on ECH_ROTATION
 if [[ "$ECH_ROTATION" == "true" ]]; then
-    log "Running in loop mode (ECH_ROTATION=true)"
+    log "Running in loop mode (ECH_ROTATION=true), please wait for a few secs to initialize"
+    sleep 5
     while true; do
         rotate_ech || log "rotate_ech failed, will retry next round"
         sleep "${ECH_ROTATION_INTERVAL:-3600}"

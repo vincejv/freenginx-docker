@@ -342,7 +342,10 @@ groupadd --gid $NGINX_GROUP_GID nginx \
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY ssl_common.conf /etc/nginx/conf.d/ssl_common.conf
 COPY ech-rotate.sh /usr/local/bin/ech-rotate.sh
-RUN chmod +x /usr/local/bin/ech-rotate.sh
+COPY start-nginx.sh /start-nginx.sh
+
+# Make scripts executable
+RUN chmod +x /start-nginx.sh /usr/local/bin/ech-rotate.sh
 
 # show env
 RUN env | sort
@@ -364,4 +367,4 @@ RUN \
     /var/run/nginx/
 
 USER nginx
-CMD sh -c "/usr/local/bin/ech-rotate.sh & exec nginx -g 'daemon off;'"
+CMD ["/start-nginx.sh"]
