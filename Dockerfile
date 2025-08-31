@@ -49,7 +49,7 @@ ARG LD_OPT="-Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -L /usr/src/quickjs
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
-		--build=quic-$NGINX_REV \
+		--build=quic-ech-$NGINX_REV \
 		--prefix=/etc/nginx \
 		--sbin-path=/usr/sbin/nginx \
 		--modules-path=/usr/lib/nginx/modules \
@@ -279,6 +279,7 @@ RUN \
 	&& mkdir /etc/nginx/conf.d/ \
 	&& strip /usr/sbin/nginx* \
 	&& strip /usr/lib/nginx/modules/*.so \
+	&& strip /usr/src/$VERSION_OPENSSL/.openssl/bin/openssl \
 	\
 	# https://tools.ietf.org/html/rfc7919
 	# https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
@@ -289,6 +290,7 @@ ARG NGINX_VERSION
 ARG NGINX_COMMIT
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
+ARG VERSION_OPENSSL
 
 ENV NGINX_VERSION=$NGINX_VERSION \
     NGINX_COMMIT=$NGINX_COMMIT
@@ -304,6 +306,9 @@ COPY --from=base /etc/ssl/dhparam.pem /etc/ssl/dhparam.pem
 # COPY --from=base /usr/lib/libcrypto.so* /usr/lib/
 COPY --from=base /usr/sbin/njs /usr/sbin/njs
 
+# OpenSSL ECH binaries
+COPY --from=base /usr/src/$VERSION_OPENSSL/.openssl/bin/openssl /usr/bin/openssl-ech
+
 # Runtime environment
 # hadolint ignore=SC2046
 RUN \
@@ -311,6 +316,9 @@ groupadd --gid $NGINX_GROUP_GID nginx \
 && useradd --uid $NGINX_USER_UID --system --create-home --home-dir /var/cache/nginx --shell /usr/sbin/nologin --gid nginx nginx \
 	&& apt-get update \
 	&& apt-get install -y --no-install-recommends \
+		ca-certificates \
+		curl \
+		jq \
 		libpcre3 \
 		libjemalloc2 \
 		tzdata \
@@ -333,6 +341,8 @@ groupadd --gid $NGINX_GROUP_GID nginx \
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY ssl_common.conf /etc/nginx/conf.d/ssl_common.conf
+COPY ech-rotate.sh /usr/local/bin/ech-rotate.sh
+RUN chmod +x /usr/local/bin/ech-rotate.sh
 
 # show env
 RUN env | sort
@@ -354,4 +364,4 @@ RUN \
     /var/run/nginx/
 
 USER nginx
-CMD ["nginx", "-g", "daemon off;"]
+CMD sh -c "/usr/local/bin/ech-rotate.sh & exec nginx -g 'daemon off;'"
