@@ -5,14 +5,14 @@ NGINX_BIN=nginx
 ECH_SCRIPT=/usr/local/bin/ech-rotate.sh
 LOGFILE="${LOGFILE:-/var/log/nginx/access.log}"
 
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] start-nginx.sh: $*" >> "$LOGFILE"
+}
+
 log "Starting nginx..."
 # Start nginx in the background
 $NGINX_BIN -g 'daemon off;' &
 NGINX_PID=$!
-
-log() {
-    log "[$(date '+%Y-%m-%d %H:%M:%S')] ech-rotate.sh: $*" >> "$LOGFILE"
-}
 
 # Function to stop nginx and ECH script
 cleanup() {
