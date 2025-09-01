@@ -3,17 +3,24 @@ set -e
 
 NGINX_BIN=nginx
 ECH_SCRIPT=/usr/local/bin/ech-rotate.sh
+LOGFILE="${LOGFILE:-/var/log/nginx/access.log}"
 
+log "Starting nginx..."
 # Start nginx in the background
 $NGINX_BIN -g 'daemon off;' &
 NGINX_PID=$!
 
+log() {
+    log "[$(date '+%Y-%m-%d %H:%M:%S')] ech-rotate.sh: $*" >> "$LOGFILE"
+}
+
 # Function to stop nginx and ECH script
 cleanup() {
-    echo "Stopping container..."
+    log "Stopping container..."
     [ -n "$ECH_PID" ] && kill -TERM "$ECH_PID" 2>/dev/null || true
     kill -TERM "$NGINX_PID" 2>/dev/null || true
     wait "$NGINX_PID"
+    log "Bye bye..."
     exit 0
 }
 
@@ -26,12 +33,12 @@ while ! $NGINX_BIN -t >/dev/null 2>&1; do
     sleep 1
     TIMEOUT=$((TIMEOUT - 1))
     if [ $TIMEOUT -le 0 ]; then
-        echo "Nginx failed to start, exiting..."
+        log "Nginx failed to start, exiting..."
         exit 1
     fi
 done
 
-echo "Nginx started successfully. Starting ECH rotation..."
+log "Nginx started successfully. Starting ECH rotation..."
 $ECH_SCRIPT &
 ECH_PID=$!
 

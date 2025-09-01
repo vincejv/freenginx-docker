@@ -100,7 +100,7 @@ rotate_ech() {
         UPDATED_DATA=$(jq -n --arg name "$d" --argjson data "$UPDATED_DATA" '{type:"HTTPS", name:$name, data:$data}')
         log "Pushing updated HTTPS record for $d: $UPDATED_DATA"
 
-        sleep 5 # sleep for 5 in between
+        sleep 1
 
         CF_RESULT=$(curl -s -X "$METHOD" "$URL" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
@@ -112,7 +112,7 @@ rotate_ech() {
         else
             log "Failed to update ech for $d: $CF_RESULT"
         fi
-        sleep 10 # sleep for 10 seconds for each domain to avoid rate limiting
+        sleep 2 # sleep for 10 seconds for each domain to avoid rate limiting
     done
 
     log "Finished ECH key rotation"
