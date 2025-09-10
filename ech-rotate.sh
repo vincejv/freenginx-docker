@@ -39,9 +39,9 @@ rotate_ech() {
     openssl-ech ech -public_name "$DOMAIN" -out "$NEW_KEY"
     log "Generated: $NEW_KEY"
 
-    # 2. Cleanup old keys, keep only last 3
+    # 2. Cleanup old keys, keep only last 4
     cd "$ECH_DIR"
-    ls -1t "$DOMAIN".*.pem.ech | tail -n +4 | xargs -r rm -f
+    ls -1t "$DOMAIN".*.pem.ech | tail -n +5 | xargs -r rm -f
     log "Cleanup done, kept 3 most recent keys"
 
     # 3. Reload nginx
@@ -65,9 +65,11 @@ rotate_ech() {
     fi
     log "Extracted ECHConfig (length: ${#ECHCONFIG})"
 
+    # Common curl options
     # 5. Publish HTTPS DNS record to Cloudflare (update only ech field)
+    CURL_OPTS=(-s --retry 5 --retry-delay 2 --retry-connrefused)
     for d in "${SUBDOMAINS_ARR[@]}"; do
-        RECORD=$(curl -s -X GET "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS&name=$d" \
+        RECORD=$(curl "${CURL_OPTS[@]}" -X GET "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS&name=$d" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json")
 
@@ -100,9 +102,9 @@ rotate_ech() {
         UPDATED_DATA=$(jq -n --arg name "$d" --argjson data "$UPDATED_DATA" '{type:"HTTPS", name:$name, data:$data}')
         log "Pushing updated HTTPS record for $d: $UPDATED_DATA"
 
-        sleep 1
+        sleep 0.3
 
-        CF_RESULT=$(curl -s -X "$METHOD" "$URL" \
+        CF_RESULT=$(curl "${CURL_OPTS[@]}" -X "$METHOD" "$URL" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json" \
             --data "$UPDATED_DATA") || log "Failed to push DNS record for $d"
@@ -112,7 +114,7 @@ rotate_ech() {
         else
             log "Failed to update ech for $d: $CF_RESULT"
         fi
-        sleep 2 # sleep for 10 seconds for each domain to avoid rate limiting
+        sleep 0.3
     done
 
     log "Finished ECH key rotation"
