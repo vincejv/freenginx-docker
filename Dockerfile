@@ -100,7 +100,7 @@ ARG CONFIG="\
 		--without-mail_pop3_module \
     	--without-mail_imap_module \
     	--without-mail_smtp_module \
-		--with-openssl=/usr/src/$VERSION_OPENSSL \
+		--with-openssl=/usr/src/openssl \
 		--with-openssl-opt=enable-quic \
 		--with-openssl-opt=enable-ktls \
 		--add-module=/usr/src/ngx_brotli \
@@ -182,7 +182,9 @@ RUN \
 	curl -L https://github.com/openssl/openssl/archive/refs/heads/feature/ech.tar.gz -o openssl.tar.gz && \
 	# echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
 	# curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
-	tar xzf openssl.tar.gz
+	mkdir /usr/src/openssl && \
+	cd /usr/src/openssl && \
+	tar -xzf ../openssl.tar.gz --strip-components=1
 
 RUN \
 	echo "Cloning nginx $NGINX_VERSION (commit $NGINX_COMMIT from 'default' branch) ..." \
@@ -279,7 +281,7 @@ RUN \
 	&& mkdir /etc/nginx/conf.d/ \
 	&& strip /usr/sbin/nginx* \
 	&& strip /usr/lib/nginx/modules/*.so \
-	&& strip /usr/src/$VERSION_OPENSSL/.openssl/bin/openssl \
+	&& strip /usr/src/openssl/.openssl/bin/openssl \
 	\
 	# https://tools.ietf.org/html/rfc7919
 	# https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
@@ -290,7 +292,6 @@ ARG NGINX_VERSION
 ARG NGINX_COMMIT
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
-ARG VERSION_OPENSSL
 
 ENV NGINX_VERSION=$NGINX_VERSION \
     NGINX_COMMIT=$NGINX_COMMIT
@@ -307,7 +308,7 @@ COPY --from=base /etc/ssl/dhparam.pem /etc/ssl/dhparam.pem
 COPY --from=base /usr/sbin/njs /usr/sbin/njs
 
 # OpenSSL ECH binaries
-COPY --from=base /usr/src/$VERSION_OPENSSL/.openssl/bin/openssl /usr/bin/openssl-ech
+COPY --from=base /usr/src/openssl/.openssl/bin/openssl /usr/bin/openssl-ech
 
 # Runtime environment
 # hadolint ignore=SC2046
