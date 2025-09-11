@@ -40,7 +40,7 @@ ARG NGINX_USER_UID=100
 ARG NGINX_GROUP_GID=101
 
 # Generic CFLAGS across build
-ARG CFLAGS_OPT="-O3 -pipe -fomit-frame-pointer -Wno-cast-function-type-mismatch -march=sandybridge"
+ARG CFLAGS_OPT="-O3 -pipe -falign-functions=32 -fdata-sections -ffunction-sections -fomit-frame-pointer -Wno-cast-function-type-mismatch -march=sandybridge"
 ARG LDFLAGS_OPT="-O3 -Wl,--strip-all -Wl,--as-needed"
 
 # NGINX Native CC Opt
