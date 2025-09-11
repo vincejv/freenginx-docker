@@ -101,6 +101,12 @@ ARG CONFIG="\
     	--without-mail_imap_module \
     	--without-mail_smtp_module \
 		--with-openssl=/usr/src/openssl \
+		--with-openssl-opt=enable-ec_nistp_64_gcc_128 \
+		--with-openssl-opt=no-ssl2 \
+		--with-openssl-opt=no-ssl3 \
+		--with-openssl-opt=no-shared \
+		--with-openssl-opt=no-weak-ssl-ciphers \
+		--with-openssl-opt=no-tls-deprecated-ec \
 		--with-openssl-opt=enable-quic \
 		--with-openssl-opt=enable-ktls \
 		--add-module=/usr/src/ngx_brotli \
