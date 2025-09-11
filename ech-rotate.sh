@@ -42,7 +42,7 @@ rotate_ech() {
     # 2. Cleanup old keys, keep only last 4
     cd "$ECH_DIR"
     ls -1t "$DOMAIN".*.pem.ech | tail -n +5 | xargs -r rm -f
-    log "Cleanup done, kept 3 most recent keys"
+    log "Cleanup done, kept 4 most recent keys"
 
     # 3. Reload nginx
     if [[ -f "$PIDFILE" ]]; then
