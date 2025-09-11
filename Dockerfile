@@ -189,8 +189,8 @@ RUN \
 RUN \
 	echo "Cloning nginx $NGINX_VERSION (commit $NGINX_COMMIT from 'default' branch) ..." \
 	# && hg clone -b default --rev $NGINX_COMMIT https://freenginx.org/hg/nginx/ /usr/src/nginx-$NGINX_VERSION
-	&& mkdir /usr/src/nginx-$NGINX_VERSION \
-	&& cd /usr/src/nginx-$NGINX_VERSION \
+	&& mkdir /usr/src/nginx \
+	&& cd /usr/src/nginx \
 	&& git init \
 	&& git remote add origin https://github.com/vincejv/freenginx-ech.git \
 	&& git fetch --depth 1 origin ${NGINX_COMMIT} \
@@ -265,7 +265,7 @@ RUN \
 RUN \
   echo "Building nginx ..." \
   && mkdir -p /var/run/nginx/ \
-	&& cd /usr/src/nginx-$NGINX_VERSION \
+	&& cd /usr/src/nginx \
 	&& ./auto/configure \
 	  --with-cc-opt="$CC_OPT" \
 	  --with-ld-opt="$LD_OPT" \
@@ -273,7 +273,7 @@ RUN \
 	&& make -j"$(getconf _NPROCESSORS_ONLN)"
 
 RUN \
-	cd /usr/src/nginx-$NGINX_VERSION \
+	cd /usr/src/nginx \
 	&& make install \
 	&& rm -rf /etc/nginx/html/ \
 	&& mkdir /etc/nginx/conf.d/ \
@@ -286,13 +286,8 @@ RUN \
 	&& wget -q https://ssl-config.mozilla.org/ffdhe2048.txt -O /etc/ssl/dhparam.pem
 
 FROM debian:bookworm-slim
-ARG NGINX_VERSION
-ARG NGINX_COMMIT
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
-
-ENV NGINX_VERSION=$NGINX_VERSION \
-    NGINX_COMMIT=$NGINX_COMMIT
 
 COPY --from=base /var/run/nginx/ /var/run/nginx/
 # COPY --from=base /tmp/runDeps.txt /tmp/runDeps.txt
