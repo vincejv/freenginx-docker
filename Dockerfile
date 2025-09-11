@@ -118,7 +118,7 @@ ARG CONFIG="\
 		--with-cc=clang-20 \
 	"
 
-FROM debian:bookworm AS base
+FROM debian:trixie AS base
 
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
@@ -155,7 +155,7 @@ RUN \
 		ninja-build \
 		mercurial \
 		libssl-dev \
-		libpcre3-dev \
+		libpcre2-dev \
 		zlib1g-dev \
 		gnupg \
 		libxslt-dev \
@@ -172,7 +172,6 @@ RUN \
 		wget \
 		ca-certificates \
 		lsb-release \ 
-		software-properties-common \
 		libmaxminddb-dev \
 		libjemalloc-dev \
 		libreadline-dev && \
@@ -291,7 +290,7 @@ RUN \
 	# https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
 	&& wget -q https://ssl-config.mozilla.org/ffdhe2048.txt -O /etc/ssl/dhparam.pem
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 
@@ -319,7 +318,7 @@ groupadd --gid $NGINX_GROUP_GID nginx \
 		ca-certificates \
 		curl \
 		jq \
-		libpcre3 \
+		libpcre2-8-0 \
 		libjemalloc2 \
 		tzdata \
 		libssl3 \
