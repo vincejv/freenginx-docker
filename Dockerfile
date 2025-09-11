@@ -242,14 +242,12 @@ RUN \
 
 # QuickJS (njs dependency)
 RUN \
-  echo "Cloning and configuring QuickJS ..." \
-  && mkdir /usr/src/quickjs \
-  && cd /usr/src/quickjs \
-  && git init \
-  && git remote add origin https://github.com/bellard/quickjs.git \
-  && git fetch --depth 1 origin ${QUICKJS_COMMIT} \
-  && git checkout -q FETCH_HEAD \
-  && CFLAGS='-fPIC' make libquickjs.a
+  echo "Cloning and configuring quickjs ..." \
+  && cd /usr/src \
+  && git clone https://github.com/bellard/quickjs quickjs \
+  && cd quickjs \
+  && make libquickjs.a \
+  && echo "quickjs $(cat VERSION)"
 
 RUN \
   echo "Cloning and configuring njs ..." \
@@ -259,7 +257,7 @@ RUN \
   && git remote add origin https://github.com/nginx/njs.git \
   && git fetch --depth 1 origin ${NJS_COMMIT} \
   && git checkout -q FETCH_HEAD \
-  && ./configure \
+  && ./configure --cc-opt='-I /usr/src/quickjs' --ld-opt="-L /usr/src/quickjs" \
   && make njs \
   && mv /usr/src/njs/build/njs /usr/sbin/njs \
   && echo "njs v$(njs -v)"
