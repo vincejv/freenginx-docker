@@ -44,7 +44,7 @@ ARG CFLAGS_OPT="-O3 -pipe -falign-functions=32 -fdata-sections -ffunction-sectio
 ARG LDFLAGS_OPT="-O3 -Wl,--strip-all -Wl,--as-needed"
 
 # NGINX Native CC Opt
-ARG CC_OPT="-O3 -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs -DTCP_FASTOPEN=23"
+ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs -DTCP_FASTOPEN=23"
 ARG LD_OPT="-s -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--gc-sections -L /usr/src/quickjs -ljemalloc"
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
