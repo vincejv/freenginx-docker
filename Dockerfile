@@ -115,7 +115,7 @@ ARG CONFIG="\
 		--add-module=/usr/src/ngx_http_fancyindex_module \
 		--add-module=/usr/src/zstd-nginx-module \
 		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
-		--with-cc=clang-20 \
+		--with-cc=clang \
 	"
 
 FROM debian:trixie AS base
@@ -142,8 +142,8 @@ ENV VERSION_OPENSSL=$VERSION_OPENSSL \
     CXXFLAGS="$CFLAGS_OPT" \
     CPPFLAGS="$CFLAGS_OPT" \
     LDFLAGS="$LDFLAGS_OPT" \
-    CC=clang-20 \
-    CXX=clang++-20
+    CC=clang \
+    CXX=clang++
 
 # Development environment
 RUN \
@@ -171,13 +171,12 @@ RUN \
 		cmake \
 		wget \
 		ca-certificates \
-		lsb-release \ 
+		lsb-release \
+		llvm \
+		clang \
 		libmaxminddb-dev \
 		libjemalloc-dev \
-		libreadline-dev && \
-	# download install clang and llvm
-	wget https://apt.llvm.org/llvm.sh && \
-		chmod +x llvm.sh && ./llvm.sh 20
+		libreadline-dev
 
 WORKDIR /usr/src/
 
@@ -275,6 +274,7 @@ RUN \
 	  --with-cc-opt="$CC_OPT" \
 	  --with-ld-opt="$LD_OPT" \
 	  $CONFIG \
+     || (echo "==== CONFIGURE FAILED ====" && cat objs/autoconf.err && exit 1) \
 	&& make -j"$(getconf _NPROCESSORS_ONLN)"
 
 RUN \
