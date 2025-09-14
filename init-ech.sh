@@ -50,36 +50,40 @@ for d in "${SUBDOMAINS_ARR[@]}"; do
     RECORD_DATA=$(echo "$RECORD" | jq '.result[0].data')
 
     if [[ "$RECORD_ID" == "null" ]]; then
-        log "No HTTPS record for $d, creating new"
+        log "No HTTPS record found for $d, inserting new HTTPS record"
         UPDATED_DATA=$(jq -n --arg ech "$ECHCONFIG" '{
             value: "ech=\"\($ech)\"",
             priority: "1",
-            target: "."
+            target: ".",
         }')
         METHOD="POST"
         URL="$CF_ZONE_URL/$CF_ZONE_ID/dns_records"
     else
-        log "Updating ech for $d"
+        log "HTTPS record found for $d, updating ech public key"
+        # Replace the ech record in HTTPS DNS record
         UPDATED_DATA=$(echo "$RECORD_DATA" \
-            | jq --arg ECH "$ECHCONFIG" '
-                if .value | test("ech=")
-                then .value |= sub("ech=\"[^\"]*\""; "ech=\"\($ECH)\"")
-                else .value += " ech=\"\($ECH)\""
-                end
-            ')
+        | jq --arg ECH "$ECHCONFIG" '
+            if .value | test("ech=")
+            then .value |= sub("ech=\"[^\"]*\""; "ech=\"\($ECH)\"")
+            else .value += " ech=\"\($ECH)\""
+            end
+        ')
         METHOD="PUT"
         URL="$CF_ZONE_URL/$CF_ZONE_ID/dns_records/$RECORD_ID"
     fi
 
     UPDATED_DATA=$(jq -n --arg name "$d" --argjson data "$UPDATED_DATA" '{type:"HTTPS", name:$name, data:$data}')
+    log "Pushing updated HTTPS record for $d: $UPDATED_DATA"
+
+    sleep 0.3
 
     CF_RESULT=$(curl "${CURL_OPTS[@]}" -X "$METHOD" "$URL" \
         -H "Authorization: Bearer $CF_API_TOKEN" \
         -H "Content-Type: application/json" \
-        --data "$UPDATED_DATA")
+        --data "$UPDATED_DATA") || log "Failed to push DNS record for $d"
 
     if echo "$CF_RESULT" | grep -q '"success":true'; then
-        log "Updated ech for $d successfully"
+        log "Updated ech for $d (record $RECORD_ID)"
     else
         log "Failed to update ech for $d: $CF_RESULT"
     fi
