@@ -17,7 +17,10 @@ if [ ! -L "$ECH_DIR/$DOMAIN.ech" ] || \
    [ ! -L "$ECH_DIR/$DOMAIN.previous.ech" ] || \
    [ ! -L "$ECH_DIR/$DOMAIN.stale.ech" ]; then
     log "One or more ECH symlinks missing. Running init-ech.sh..."
-    $ECH_INIT_SCRIPT
+    if ! $ECH_INIT_SCRIPT; then
+        log "init-ech.sh failed, stopping container..."
+        exit 1
+    fi
 else
     log "All ECH symlinks exist. Skipping initialization."
 fi
