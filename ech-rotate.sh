@@ -42,19 +42,10 @@ rotate_ech() {
 
     # 2. Ensure symlinks exist, fill missing ones with latest
     cd "$ECH_DIR" || exit 1
-    if [[ -L "$DOMAIN.ech" && -L "$DOMAIN.previous.ech" && -L "$DOMAIN.stale.ech" ]]; then
-        # Rotate normally
-        ln -sf "$(readlink "$DOMAIN.previous.ech")" "$DOMAIN.stale.ech"
-        ln -sf "$(readlink "$DOMAIN.ech")" "$DOMAIN.previous.ech"
-        ln -sf "$(basename "$NEW_KEY")" "$DOMAIN.ech"
-        log "Symlinks rotated: ech -> $(readlink "$DOMAIN.ech"), previous.ech -> $(readlink "$DOMAIN.previous.ech"), stale.ech -> $(readlink "$DOMAIN.stale.ech")"
-    else
-        # Reset all symlinks to new key if any are missing
-        for l in ech previous.ech stale.ech; do
-            ln -sf "$(basename "$NEW_KEY")" "$DOMAIN.$l"
-        done
-        log "Symlinks reset: all -> $(basename "$NEW_KEY")"
-    fi
+    ln -sf "$(readlink "$DOMAIN.previous.ech")" "$DOMAIN.stale.ech"
+    ln -sf "$(readlink "$DOMAIN.ech")" "$DOMAIN.previous.ech"
+    ln -sf "$(basename "$NEW_KEY")" "$DOMAIN.ech"
+    log "Symlinks rotated: ech -> $(readlink "$DOMAIN.ech"), previous.ech -> $(readlink "$DOMAIN.previous.ech"), stale.ech -> $(readlink "$DOMAIN.stale.ech")"
 
     # 4. Reload nginx
     if [[ -f "$PIDFILE" ]]; then
@@ -154,11 +145,10 @@ rotate_ech() {
 
 # Run once or loop depending on ECH_ROTATION
 if [[ "$ECH_ROTATION" == "true" ]]; then
-    log "Running in loop mode (ECH_ROTATION=true), please wait for a few secs to initialize"
-    sleep 5
+    log "Running in loop mode (ECH_ROTATION=true)"
     while true; do
-        rotate_ech || log "rotate_ech failed, will retry next round"
         sleep "${ECH_ROTATION_INTERVAL:-3600}"
+        rotate_ech || log "rotate_ech failed, will retry next round"
     done
 else
     log "ECH Rotation is disabled (ECH_ROTATION=false)"

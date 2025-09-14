@@ -2,19 +2,31 @@
 set -e
 
 NGINX_BIN=nginx
-ECH_SCRIPT=/usr/local/bin/ech-rotate.sh
+ECH_ROTATE_SCRIPT=/usr/local/bin/ech-rotate.sh
+ECH_INIT_SCRIPT=/usr/local/bin/init-ech.sh
+ECH_DIR="${ECH_DIR:-/etc/nginx/echkeys}"
+DOMAIN="${DOMAIN:?Must set DOMAIN}"
 LOGFILE="${LOGFILE:-/var/log/nginx/access.log}"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] start-nginx.sh: $*" >> "$LOGFILE"
 }
 
+# Run init-ech if any symlink is missing
+if [ ! -L "$ECH_DIR/$DOMAIN.ech" ] || \
+   [ ! -L "$ECH_DIR/$DOMAIN.previous.ech" ] || \
+   [ ! -L "$ECH_DIR/$DOMAIN.stale.ech" ]; then
+    log "One or more ECH symlinks missing. Running init-ech.sh..."
+    $ECH_INIT_SCRIPT
+else
+    log "All ECH symlinks exist. Skipping initialization."
+fi
+
 log "Starting nginx..."
 # Start nginx in the background
 $NGINX_BIN -g 'daemon off;' &
 NGINX_PID=$!
 
-# Function to stop nginx and ECH script
 cleanup() {
     log "Stopping container..."
     [ -n "$ECH_PID" ] && kill -TERM "$ECH_PID" 2>/dev/null || true
@@ -24,7 +36,6 @@ cleanup() {
     exit 0
 }
 
-# Trap signals and forward them
 trap 'cleanup' TERM INT
 
 # Wait until nginx is ready (max 10 seconds)
@@ -39,12 +50,12 @@ while ! $NGINX_BIN -t >/dev/null 2>&1; do
 done
 
 log "Nginx started successfully. Starting ECH rotation..."
-$ECH_SCRIPT &
+$ECH_ROTATE_SCRIPT &
 ECH_PID=$!
 
-# Wait for nginx to exit (container main process)
+# Wait for nginx (container main process)
 wait "$NGINX_PID"
 
-# If nginx exits, stop ECH script too
+# Stop ECH script if nginx exits
 [ -n "$ECH_PID" ] && kill -TERM "$ECH_PID" 2>/dev/null || true
 wait "$ECH_PID" 2>/dev/null || true
