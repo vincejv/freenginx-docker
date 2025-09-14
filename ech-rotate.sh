@@ -22,6 +22,7 @@ CF_ZONE_ID="${CF_ZONE_ID:?Must set CF_ZONE_ID}"
 CF_API_TOKEN="${CF_API_TOKEN:?Must set CF_API_TOKEN}"
 SUBDOMAINS="${SUBDOMAINS:?Must set SUBDOMAINS (space-separated list)}"
 ECH_ROTATION="${ECH_ROTATION:-false}"   # default: disabled
+KEEP_KEYS="${KEEP_KEYS:-5}"             # number of old timestamped keys to keep
 
 IFS=' ' read -r -a SUBDOMAINS_ARR <<< "$SUBDOMAINS"
 if [[ ${#SUBDOMAINS_ARR[@]} -eq 0 ]]; then
@@ -39,10 +40,21 @@ rotate_ech() {
     openssl-ech ech -public_name "$DOMAIN" -out "$NEW_KEY"
     log "Generated: $NEW_KEY"
 
-    # 2. Cleanup old keys, keep only last 4
-    cd "$ECH_DIR"
-    ls -1t "$DOMAIN".*.pem.ech | tail -n +5 | xargs -r rm -f
-    log "Cleanup done, kept 4 most recent keys"
+    # 2. Shift symlinks: stale <- previous <- latest (symlink method)
+    cd "$ECH_DIR" || exit 1
+    # previous -> stale (preserve the same target)
+    if [[ -L "$DOMAIN.previous.ech" ]]; then
+        prev_target=$(readlink "$DOMAIN.previous.ech")
+        ln -sf "$prev_target" "$DOMAIN.stale.ech"
+    fi
+    # latest -> previous
+    if [[ -L "$DOMAIN.ech" ]]; then
+        latest_target=$(readlink "$DOMAIN.ech")
+        ln -sf "$latest_target" "$DOMAIN.previous.ech"
+    fi
+    # latest -> new timestamped file
+    ln -sf "$(basename "$NEW_KEY")" "$DOMAIN.ech"
+    log "Symlinks updated: $DOMAIN.ech -> $(readlink "$DOMAIN.ech"), $DOMAIN.previous.ech -> $(readlink "$DOMAIN.previous.ech"), $DOMAIN.stale.ech -> $(readlink "$DOMAIN.stale.ech")"
 
     # 3. Reload nginx
     if [[ -f "$PIDFILE" ]]; then
@@ -115,6 +127,25 @@ rotate_ech() {
             log "Failed to update ech for $d: $CF_RESULT"
         fi
         sleep 0.3
+    done
+
+    # 6. Cleanup old keys (keep latest N timestamped files, skip symlink targets)
+    cd "$ECH_DIR" || exit 1
+    # Resolve symlink targets (absolute paths)
+    latest_target=$(readlink -f "$DOMAIN.ech" 2>/dev/null || true)
+    prev_target=$(readlink -f "$DOMAIN.previous.ech" 2>/dev/null || true)
+    stale_target=$(readlink -f "$DOMAIN.stale.ech" 2>/dev/null || true)
+    # Sort timestamped files newest first, drop those beyond KEEP_KEYS
+    ls -1t "$DOMAIN".*.pem.ech | tail -n +"$((KEEP_KEYS+1))" | while read -r OLDKEY; do
+        fullpath=$(readlink -f "$OLDKEY" 2>/dev/null || true)
+        [[ -n "$fullpath" ]] || continue
+
+        if [[ "$fullpath" == "$latest_target" || "$fullpath" == "$prev_target" || "$fullpath" == "$stale_target" ]]; then
+            log "Skipping symlink target: $OLDKEY"
+        else
+            rm -f -- "$OLDKEY"
+            log "Removed old timestamped key: $OLDKEY"
+        fi
     done
 
     log "Finished ECH key rotation"
