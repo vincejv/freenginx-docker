@@ -133,6 +133,7 @@ ARG NGINX_COMMIT
 ARG NGX_BROTLI_COMMIT
 ARG HEADERS_MORE_VERSION
 ARG NJS_VERSION
+ARG QUICKJS_COMMIT
 ARG PCRE_VERSION
 ARG ZLIB_VERSION
 ARG GEOIP2_VERSION
@@ -256,12 +257,15 @@ RUN \
 
 # QuickJS (njs dependency)
 RUN \
-  echo "Cloning and configuring quickjs ..." \
-  && cd /usr/src \
-  && git clone https://github.com/bellard/quickjs quickjs \
-  && cd quickjs \
-  && make libquickjs.a \
-  && echo "quickjs $(cat VERSION)"
+    echo "Cloning and configuring quickjs ..." \
+    && mkdir /usr/src/quickjs \
+    && cd /usr/src/quickjs \
+    && git init \
+    && git remote add origin https://github.com/bellard/quickjs \
+    && git fetch --depth 1 origin ${QUICKJS_COMMIT} \
+    && git checkout -q ${QUICKJS_COMMIT} \
+    && make libquickjs.a \
+    && echo "quickjs $(cat VERSION)"
 
 RUN \
   echo "Cloning and configuring njs ..." \
