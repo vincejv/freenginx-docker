@@ -35,6 +35,9 @@ ARG ZSTDNGINX_COMMIT=f4ba115e0b0eaecde545e5f37db6aa18917d8f4b
 #ARG VERSION_OPENSSL=openssl-3.5.2
 ARG VERSION_OPENSSL=openssl-feature-ech
 
+# https://github.com/PCRE2Project/pcre2
+ARG PCRE_VERSION=10.46
+
 # NGINX UID / GID
 ARG NGINX_USER_UID=100
 ARG NGINX_GROUP_GID=101
@@ -109,6 +112,7 @@ ARG CONFIG="\
 		--with-openssl-opt=no-tls-deprecated-ec \
 		--with-openssl-opt=enable-quic \
 		--with-openssl-opt=enable-ktls \
+		--with-pcre=/usr/src/pcre2 \
 		--add-module=/usr/src/ngx_brotli \
 		--add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
 		--add-module=/usr/src/njs/nginx \
@@ -125,6 +129,7 @@ ARG NGINX_COMMIT
 ARG NGX_BROTLI_COMMIT
 ARG HEADERS_MORE_VERSION
 ARG NJS_COMMIT
+ARG PCRE_VERSION
 ARG GEOIP2_VERSION
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
@@ -267,6 +272,16 @@ RUN \
   && echo "njs v$(njs -v)"
 
 RUN \
+  echo "Cloning pcre2 ..." \
+  && mkdir /usr/src/pcre2 \
+  && cd /usr/src/pcre2 \
+  && git init \
+  && git remote add origin https://github.com/PCRE2Project/pcre2.git \
+  && git fetch --depth 1 origin pcre2-${PCRE_VERSION} \
+  && git checkout -q FETCH_HEAD \
+  && git submodule update --init --recursive --depth 1
+
+RUN \
   echo "Building nginx ..." \
   && mkdir -p /var/run/nginx/ \
 	&& cd /usr/src/nginx \
@@ -318,7 +333,6 @@ groupadd --gid $NGINX_GROUP_GID nginx \
 		ca-certificates \
 		curl \
 		jq \
-		libpcre2-8-0 \
 		libjemalloc2 \
 		tzdata \
 		libssl3 \
