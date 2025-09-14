@@ -118,7 +118,7 @@ ARG CONFIG="\
   --with-pcre=/usr/src/pcre2 \
   --with-zlib=/usr/src/zlib-ng \
   --add-module=/usr/src/ngx_brotli \
-  --add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
+  --add-module=/usr/src/headers-more-nginx-module \
   --add-module=/usr/src/njs/nginx \
   --add-module=/usr/src/ngx_http_fancyindex_module \
   --add-module=/usr/src/zstd-nginx-module \
@@ -238,9 +238,9 @@ RUN \
 
 RUN \
   echo "Downloading headers-more-nginx-module ..." \
-  && cd /usr/src \
-  && wget -q https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v${HEADERS_MORE_VERSION}.tar.gz -O headers-more-nginx-module.tar.gz \
-  && tar -xf headers-more-nginx-module.tar.gz
+  && mkdir /usr/src/headers-more-nginx-module \
+  && wget -qO- https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v${HEADERS_MORE_VERSION}.tar.gz \
+    | tar xz --strip-components=1 -C /usr/src/headers-more-nginx-module
 
 RUN \
   echo "Downloading ngx_http_geoip2_module ..." \
