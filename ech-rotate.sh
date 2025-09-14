@@ -22,7 +22,7 @@ CF_ZONE_ID="${CF_ZONE_ID:?Must set CF_ZONE_ID}"
 CF_API_TOKEN="${CF_API_TOKEN:?Must set CF_API_TOKEN}"
 SUBDOMAINS="${SUBDOMAINS:?Must set SUBDOMAINS (space-separated list)}"
 ECH_ROTATION="${ECH_ROTATION:-false}"   # default: disabled
-KEEP_KEYS="${KEEP_KEYS:-5}"             # number of old timestamped keys to keep
+KEEP_KEYS="${KEEP_KEYS:-3}"             # number of old timestamped keys to keep
 
 IFS=' ' read -r -a SUBDOMAINS_ARR <<< "$SUBDOMAINS"
 if [[ ${#SUBDOMAINS_ARR[@]} -eq 0 ]]; then
@@ -40,23 +40,23 @@ rotate_ech() {
     openssl-ech ech -public_name "$DOMAIN" -out "$NEW_KEY"
     log "Generated: $NEW_KEY"
 
-    # 2. Shift symlinks: stale <- previous <- latest (symlink method)
+    # 2. Ensure symlinks exist, fill missing ones with latest
     cd "$ECH_DIR" || exit 1
-    # previous -> stale (preserve the same target)
-    if [[ -L "$DOMAIN.previous.ech" ]]; then
-        prev_target=$(readlink "$DOMAIN.previous.ech")
-        ln -sf "$prev_target" "$DOMAIN.stale.ech"
+    if [[ -L "$DOMAIN.ech" && -L "$DOMAIN.previous.ech" && -L "$DOMAIN.stale.ech" ]]; then
+        # Rotate normally
+        ln -sf "$(readlink "$DOMAIN.previous.ech")" "$DOMAIN.stale.ech"
+        ln -sf "$(readlink "$DOMAIN.ech")" "$DOMAIN.previous.ech"
+        ln -sf "$(basename "$NEW_KEY")" "$DOMAIN.ech"
+        log "Symlinks rotated: ech -> $(readlink "$DOMAIN.ech"), previous.ech -> $(readlink "$DOMAIN.previous.ech"), stale.ech -> $(readlink "$DOMAIN.stale.ech")"
+    else
+        # Reset all symlinks to new key if any are missing
+        for l in ech previous.ech stale.ech; do
+            ln -sf "$(basename "$NEW_KEY")" "$DOMAIN.$l"
+        done
+        log "Symlinks reset: all -> $(basename "$NEW_KEY")"
     fi
-    # latest -> previous
-    if [[ -L "$DOMAIN.ech" ]]; then
-        latest_target=$(readlink "$DOMAIN.ech")
-        ln -sf "$latest_target" "$DOMAIN.previous.ech"
-    fi
-    # latest -> new timestamped file
-    ln -sf "$(basename "$NEW_KEY")" "$DOMAIN.ech"
-    log "Symlinks updated: $DOMAIN.ech -> $(readlink "$DOMAIN.ech"), $DOMAIN.previous.ech -> $(readlink "$DOMAIN.previous.ech"), $DOMAIN.stale.ech -> $(readlink "$DOMAIN.stale.ech")"
 
-    # 3. Reload nginx
+    # 4. Reload nginx
     if [[ -f "$PIDFILE" ]]; then
         PID=$(cat "$PIDFILE")
         if kill -0 "$PID" 2>/dev/null; then
@@ -69,7 +69,7 @@ rotate_ech() {
         log "PID file not found: $PIDFILE"
     fi
 
-    # 4. Extract ECHConfig from new key
+    # 5. Extract ECHConfig from new key
     ECHCONFIG=$(awk '/-----BEGIN ECHCONFIG-----/{flag=1;next}/-----END ECHCONFIG-----/{flag=0}flag' "$NEW_KEY" | tr -d '\n')
     if [[ -z "$ECHCONFIG" ]]; then
         log "Failed to extract ECHConfig"
@@ -78,7 +78,7 @@ rotate_ech() {
     log "Extracted ECHConfig (length: ${#ECHCONFIG})"
 
     # Common curl options
-    # 5. Publish HTTPS DNS record to Cloudflare (update only ech field)
+    # 6. Publish HTTPS DNS record to Cloudflare (update only ech field)
     CURL_OPTS=(-s --retry 5 --retry-delay 2 --retry-connrefused)
     for d in "${SUBDOMAINS_ARR[@]}"; do
         RECORD=$(curl "${CURL_OPTS[@]}" -X GET "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS&name=$d" \
@@ -129,7 +129,7 @@ rotate_ech() {
         sleep 0.3
     done
 
-    # 6. Cleanup old keys (keep latest N timestamped files, skip symlink targets)
+    # 7. Cleanup old keys (keep latest N timestamped files, skip symlink targets)
     cd "$ECH_DIR" || exit 1
     # Resolve symlink targets (absolute paths)
     latest_target=$(readlink -f "$DOMAIN.ech" 2>/dev/null || true)
