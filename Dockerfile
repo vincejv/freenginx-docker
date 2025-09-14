@@ -13,10 +13,10 @@ ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 #ARG BORINGSSL_COMMIT=fae0964b3d44e94ca2a2d21f86e61dabe683d130
 
 # https://github.com/nginx/njs/releases/tag/0.9.1
-ARG NJS_COMMIT=4fd3ff98e413ede57c88456cf84b116a8382061a
+ARG NJS_VERSION=0.9.1
 
-# https://github.com/bellard/quickjs/commits/19abf1888db5884a5758036ff6e7fa2b340acedc/
-ARG QUICKJS_COMMIT=19abf1888db5884a5758036ff6e7fa2b340acedc
+# https://github.com/bellard/quickjs/commits/fa628f8c523ecac8ce560c081411e91fcaba2d20/
+ARG QUICKJS_COMMIT=fa628f8c523ecac8ce560c081411e91fcaba2d20
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 # we want to have https://github.com/openresty/headers-more-nginx-module/commit/e536bc595d8b490dbc9cf5999ec48fca3f488632
@@ -55,76 +55,76 @@ ARG LD_OPT="-s -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--gc-section
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
-		--build=quic-ech-$NGINX_REV \
-		--prefix=/etc/nginx \
-		--sbin-path=/usr/sbin/nginx \
-		--modules-path=/usr/lib/nginx/modules \
-		--conf-path=/etc/nginx/nginx.conf \
-		--error-log-path=/var/log/nginx/error.log \
-		--http-log-path=/var/log/nginx/access.log \
-   		--pid-path=/var/run/nginx/nginx.pid \
-		--lock-path=/var/run/nginx/nginx.lock \
-		--http-client-body-temp-path=/var/cache/nginx/client_temp \
-		--http-proxy-temp-path=/var/cache/nginx/proxy_temp \
-		--http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
-		--http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
-		--http-scgi-temp-path=/var/cache/nginx/scgi_temp \
-		--user=nginx \
-		--group=nginx \
-		--with-http_ssl_module \
-		--with-http_realip_module \
-		--with-http_addition_module \
-		--with-http_sub_module \
-		--with-http_dav_module \
-		--with-http_flv_module \
-		--with-http_mp4_module \
-		--with-http_gunzip_module \
-		--with-http_gzip_static_module \
-		--with-http_random_index_module \
-		--with-http_secure_link_module \
-		--with-http_stub_status_module \
-		--with-http_auth_request_module \
-		--with-http_xslt_module=dynamic \
-		--with-http_image_filter_module=dynamic \
-		--with-http_geoip_module=dynamic \
-		--with-http_perl_module=dynamic \
-		--with-threads \
-		--with-stream \
-		--with-stream_ssl_module \
-		--with-stream_ssl_preread_module \
-		--with-stream_realip_module \
-		--with-stream_geoip_module=dynamic \
-		--with-http_slice_module \
-		--with-compat \
-		--with-pcre-jit \
-		--with-ipv6 \
-		--with-file-aio \
-		--with-http_v2_module \
-		--with-http_v3_module \
-		--without-http_browser_module \
-		--without-http_empty_gif_module \
-		--without-mail_pop3_module \
-    	--without-mail_imap_module \
-    	--without-mail_smtp_module \
-		--with-openssl=/usr/src/openssl \
-		--with-openssl-opt=enable-ec_nistp_64_gcc_128 \
-		--with-openssl-opt=no-ssl2 \
-		--with-openssl-opt=no-ssl3 \
-		--with-openssl-opt=no-shared \
-		--with-openssl-opt=no-weak-ssl-ciphers \
-		--with-openssl-opt=no-tls-deprecated-ec \
-		--with-openssl-opt=enable-quic \
-		--with-openssl-opt=enable-ktls \
-		--with-pcre=/usr/src/pcre2 \
-		--with-zlib=/usr/src/zlib-ng \
-		--add-module=/usr/src/ngx_brotli \
-		--add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
-		--add-module=/usr/src/njs/nginx \
-		--add-module=/usr/src/ngx_http_fancyindex_module \
-		--add-module=/usr/src/zstd-nginx-module \
-		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
-		--with-cc=clang \
-	"
+  --build=quic-ech-$NGINX_REV \
+  --prefix=/etc/nginx \
+  --sbin-path=/usr/sbin/nginx \
+  --modules-path=/usr/lib/nginx/modules \
+  --conf-path=/etc/nginx/nginx.conf \
+  --error-log-path=/var/log/nginx/error.log \
+  --http-log-path=/var/log/nginx/access.log \
+  --pid-path=/var/run/nginx/nginx.pid \
+  --lock-path=/var/run/nginx/nginx.lock \
+  --http-client-body-temp-path=/var/cache/nginx/client_temp \
+  --http-proxy-temp-path=/var/cache/nginx/proxy_temp \
+  --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
+  --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
+  --http-scgi-temp-path=/var/cache/nginx/scgi_temp \
+  --user=nginx \
+  --group=nginx \
+  --with-http_ssl_module \
+  --with-http_realip_module \
+  --with-http_addition_module \
+  --with-http_sub_module \
+  --with-http_dav_module \
+  --with-http_flv_module \
+  --with-http_mp4_module \
+  --with-http_gunzip_module \
+  --with-http_gzip_static_module \
+  --with-http_random_index_module \
+  --with-http_secure_link_module \
+  --with-http_stub_status_module \
+  --with-http_auth_request_module \
+  --with-http_xslt_module=dynamic \
+  --with-http_image_filter_module=dynamic \
+  --with-http_geoip_module=dynamic \
+  --with-http_perl_module=dynamic \
+  --with-threads \
+  --with-stream \
+  --with-stream_ssl_module \
+  --with-stream_ssl_preread_module \
+  --with-stream_realip_module \
+  --with-stream_geoip_module=dynamic \
+  --with-http_slice_module \
+  --with-compat \
+  --with-pcre-jit \
+  --with-ipv6 \
+  --with-file-aio \
+  --with-http_v2_module \
+  --with-http_v3_module \
+  --without-http_browser_module \
+  --without-http_empty_gif_module \
+  --without-mail_pop3_module \
+  --without-mail_imap_module \
+  --without-mail_smtp_module \
+  --with-openssl=/usr/src/openssl \
+  --with-openssl-opt=enable-ec_nistp_64_gcc_128 \
+  --with-openssl-opt=no-ssl2 \
+  --with-openssl-opt=no-ssl3 \
+  --with-openssl-opt=no-shared \
+  --with-openssl-opt=no-weak-ssl-ciphers \
+  --with-openssl-opt=no-tls-deprecated-ec \
+  --with-openssl-opt=enable-quic \
+  --with-openssl-opt=enable-ktls \
+  --with-pcre=/usr/src/pcre2 \
+  --with-zlib=/usr/src/zlib-ng \
+  --add-module=/usr/src/ngx_brotli \
+  --add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
+  --add-module=/usr/src/njs/nginx \
+  --add-module=/usr/src/ngx_http_fancyindex_module \
+  --add-module=/usr/src/zstd-nginx-module \
+  --add-dynamic-module=/usr/src/ngx_http_geoip2_module \
+  --with-cc=clang \
+"
 
 FROM debian:trixie AS base
 
@@ -132,7 +132,7 @@ ARG NGINX_VERSION
 ARG NGINX_COMMIT
 ARG NGX_BROTLI_COMMIT
 ARG HEADERS_MORE_VERSION
-ARG NJS_COMMIT
+ARG NJS_VERSION
 ARG PCRE_VERSION
 ARG ZLIB_VERSION
 ARG GEOIP2_VERSION
@@ -146,79 +146,79 @@ ARG CC_OPT
 ARG LD_OPT
 
 ENV VERSION_OPENSSL=$VERSION_OPENSSL \
-	SHA256_OPENSSL=c53a47e5e441c930c3928cf7bf6fb00e5d129b630e0aa873b08258656e7345ec \
-	SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download/ \
-	CFLAGS="$CFLAGS_OPT" \
-    CXXFLAGS="$CFLAGS_OPT" \
-    CPPFLAGS="$CFLAGS_OPT" \
-    LDFLAGS="$LDFLAGS_OPT" \
-    CC=clang \
-    CXX=clang++
+  SHA256_OPENSSL=c53a47e5e441c930c3928cf7bf6fb00e5d129b630e0aa873b08258656e7345ec \
+  SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download/ \
+  CFLAGS="$CFLAGS_OPT" \
+  CXXFLAGS="$CFLAGS_OPT" \
+  CPPFLAGS="$CFLAGS_OPT" \
+  LDFLAGS="$LDFLAGS_OPT" \
+  CC=clang \
+  CXX=clang++
 
 # Development environment
 RUN \
-	apt-get update && apt-get install -y --no-install-recommends \
-		curl \
-		libc6-dev \
-		make \
-		golang \
-		ninja-build \
-		mercurial \
-		libssl-dev \
-		libpcre2-dev \
-		zlib1g-dev \
-		gnupg \
-		libxslt-dev \
-		libgd-dev \
-		libgeoip-dev \
-		libperl-dev \
-		autoconf \
-		libtool \
-		libzstd-dev \
-		automake \
-		git \
-		g++ \
-		cmake \
-		wget \
-		ca-certificates \
-		lsb-release \
-		llvm \
-		clang \
-		libmaxminddb-dev \
-		libjemalloc-dev \
-		libreadline-dev
+  apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    libc6-dev \
+    make \
+    golang \
+    ninja-build \
+    mercurial \
+    libssl-dev \
+    libpcre2-dev \
+    zlib1g-dev \
+    gnupg \
+    libxslt-dev \
+    libgd-dev \
+    libgeoip-dev \
+    libperl-dev \
+    autoconf \
+    libtool \
+    libzstd-dev \
+    automake \
+    git \
+    g++ \
+    cmake \
+    wget \
+    ca-certificates \
+    lsb-release \
+    llvm \
+    clang \
+    libmaxminddb-dev \
+    libjemalloc-dev \
+    libreadline-dev
 
 WORKDIR /usr/src/
 
 RUN \
-	echo "Downloading OpenSSL source code ..." && \
-	# curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
-	curl -L https://github.com/openssl/openssl/archive/refs/heads/feature/ech.tar.gz -o openssl.tar.gz && \
-	# echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
-	# curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
-	mkdir /usr/src/openssl && \
-	cd /usr/src/openssl && \
-	tar -xzf ../openssl.tar.gz --strip-components=1
+  echo "Downloading OpenSSL source code ..." && \
+  # curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
+  curl -L https://github.com/openssl/openssl/archive/refs/heads/feature/ech.tar.gz -o openssl.tar.gz && \
+  # echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
+  # curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
+  mkdir /usr/src/openssl && \
+  cd /usr/src/openssl && \
+  tar -xzf ../openssl.tar.gz --strip-components=1
 
 RUN \
-	echo "Cloning nginx $NGINX_VERSION (commit $NGINX_COMMIT from 'default' branch) ..." \
-	# && hg clone -b default --rev $NGINX_COMMIT https://freenginx.org/hg/nginx/ /usr/src/nginx-$NGINX_VERSION
-	&& mkdir /usr/src/nginx \
-	&& cd /usr/src/nginx \
-	&& git init \
-	&& git remote add origin https://github.com/vincejv/freenginx-ech.git \
-	&& git fetch --depth 1 origin ${NGINX_COMMIT} \
-	&& git checkout -q FETCH_HEAD
+  echo "Cloning nginx $NGINX_VERSION (commit $NGINX_COMMIT from 'default' branch) ..." \
+  # && hg clone -b default --rev $NGINX_COMMIT https://freenginx.org/hg/nginx/ /usr/src/nginx-$NGINX_VERSION
+  && mkdir /usr/src/nginx \
+  && cd /usr/src/nginx \
+  && git init \
+  && git remote add origin https://github.com/vincejv/freenginx-ech.git \
+  && git fetch --depth 1 origin ${NGINX_COMMIT} \
+  && git checkout -q FETCH_HEAD
 
 RUN \
-	echo "Cloning brotli $NGX_BROTLI_COMMIT ..." \
-	&& mkdir /usr/src/ngx_brotli \
-	&& cd /usr/src/ngx_brotli \
-	&& git init \
-	&& git remote add origin https://github.com/google/ngx_brotli.git \
-	&& git fetch --depth 1 origin $NGX_BROTLI_COMMIT \
-	&& git checkout --recurse-submodules -q FETCH_HEAD \
-	&& git submodule update --init --depth 1
+  echo "Cloning brotli $NGX_BROTLI_COMMIT ..." \
+  && mkdir /usr/src/ngx_brotli \
+  && cd /usr/src/ngx_brotli \
+  && git init \
+  && git remote add origin https://github.com/google/ngx_brotli.git \
+  && git fetch --depth 1 origin $NGX_BROTLI_COMMIT \
+  && git checkout --recurse-submodules -q FETCH_HEAD \
+  && git submodule update --init --depth 1
 
 # hadolint ignore=SC2086
 #RUN \
@@ -265,61 +265,47 @@ RUN \
 
 RUN \
   echo "Cloning and configuring njs ..." \
-  && mkdir /usr/src/njs \
+  && git clone --depth 1 -b ${NJS_VERSION} https://github.com/nginx/njs.git /usr/src/njs \
   && cd /usr/src/njs \
-  && git init \
-  && git remote add origin https://github.com/nginx/njs.git \
-  && git fetch --depth 1 origin ${NJS_COMMIT} \
-  && git checkout -q FETCH_HEAD \
   && ./configure --cc-opt='-I /usr/src/quickjs' --ld-opt="-L /usr/src/quickjs" \
   && make njs \
-  && mv /usr/src/njs/build/njs /usr/sbin/njs \
+  && mv build/njs /usr/sbin/njs \
   && echo "njs v$(njs -v)"
 
 RUN \
   echo "Cloning pcre2 ..." \
-  && mkdir /usr/src/pcre2 \
-  && cd /usr/src/pcre2 \
-  && git init \
-  && git remote add origin https://github.com/PCRE2Project/pcre2.git \
-  && git fetch --depth 1 origin pcre2-${PCRE_VERSION} \
-  && git checkout -q FETCH_HEAD \
-  && git submodule update --init --recursive --depth 1
+  && git clone --depth 1 --recurse-submodules -b pcre2-${PCRE_VERSION} https://github.com/PCRE2Project/pcre2.git /usr/src/pcre2
 
 RUN \
   echo "Cloning and configuring zlib-ng ..." \
-  && mkdir /usr/src/zlib-ng \
-  && cd /usr/src/zlib-ng \
-  && git init \
-  && git remote add origin https://github.com/zlib-ng/zlib-ng.git \
-  && git fetch --depth 1 origin ${ZLIB_VERSION} \
-  && git checkout -q FETCH_HEAD \
+  && git clone --depth 1 -b ${ZLIB_VERSION} https://github.com/zlib-ng/zlib-ng.git /usr/src/zlib-ng \
   && sed -i "s/compat=0/compat=1/" /usr/src/zlib-ng/configure \
+  && cd /usr/src/zlib-ng \
   && ./configure --zlib-compat
 
 RUN \
   echo "Building nginx ..." \
   && mkdir -p /var/run/nginx/ \
-	&& cd /usr/src/nginx \
-	&& ./auto/configure \
-	  --with-cc-opt="$CC_OPT" \
-	  --with-ld-opt="$LD_OPT" \
-	  $CONFIG \
-     || (echo "==== CONFIGURE FAILED ====" && cat objs/autoconf.err && exit 1) \
-	&& make -j"$(getconf _NPROCESSORS_ONLN)"
+  && cd /usr/src/nginx \
+  && ./auto/configure \
+    --with-cc-opt="$CC_OPT" \
+    --with-ld-opt="$LD_OPT" \
+    $CONFIG \
+      || (echo "==== CONFIGURE FAILED ====" && cat objs/autoconf.err && exit 1) \
+  && make -j"$(getconf _NPROCESSORS_ONLN)"
 
 RUN \
-	cd /usr/src/nginx \
-	&& make install \
-	&& rm -rf /etc/nginx/html/ \
-	&& mkdir /etc/nginx/conf.d/ \
-	&& strip /usr/sbin/nginx* \
-	&& strip /usr/lib/nginx/modules/*.so \
-	&& strip /usr/src/openssl/.openssl/bin/openssl \
-	\
-	# https://tools.ietf.org/html/rfc7919
-	# https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
-	&& wget -q https://ssl-config.mozilla.org/ffdhe2048.txt -O /etc/ssl/dhparam.pem
+  cd /usr/src/nginx \
+  && make install \
+  && rm -rf /etc/nginx/html/ \
+  && mkdir /etc/nginx/conf.d/ \
+  && strip /usr/sbin/nginx* \
+  && strip /usr/lib/nginx/modules/*.so \
+  && strip /usr/src/openssl/.openssl/bin/openssl \
+  \
+  # https://tools.ietf.org/html/rfc7919
+  # https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
+  && wget -q https://ssl-config.mozilla.org/ffdhe2048.txt -O /etc/ssl/dhparam.pem
 
 FROM debian:trixie-slim
 ARG NGINX_USER_UID
@@ -344,29 +330,29 @@ COPY --from=base /usr/src/openssl/.openssl/bin/openssl /usr/bin/openssl-ech
 RUN \
 groupadd --gid $NGINX_GROUP_GID nginx \
 && useradd --uid $NGINX_USER_UID --system --create-home --home-dir /var/cache/nginx --shell /usr/sbin/nologin --gid nginx nginx \
-	&& apt-get update \
-	&& apt-get install -y --no-install-recommends \
-		ca-certificates \
-		curl \
-		jq \
-		libjemalloc2 \
-		tzdata \
-		libssl3 \
-		libxml2 \
-		libbrotli1 \
-		libxslt1.1 \
-		libzstd1 \
-		wget \
-	# Clean image
-	&& apt-get clean autoclean \
-	&& apt-get autoremove --yes \
-	&& rm -rf /var/lib/{apt,dpkg,cache,log}/ \
-	&& ln -s /usr/lib/nginx/modules /etc/nginx/modules \
-	# forward request and error logs to docker log collector
-	&& mkdir /var/log/nginx \
-	&& touch /var/log/nginx/access.log /var/log/nginx/error.log \
-	&& ln -sf /dev/stdout /var/log/nginx/access.log \
-	&& ln -sf /dev/stderr /var/log/nginx/error.log
+  && apt-get update \
+  && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    jq \
+    libjemalloc2 \
+    tzdata \
+    libssl3 \
+    libxml2 \
+    libbrotli1 \
+    libxslt1.1 \
+    libzstd1 \
+    wget \
+  # Clean image
+  && apt-get clean autoclean \
+  && apt-get autoremove --yes \
+  && rm -rf /var/lib/{apt,dpkg,cache,log}/ \
+  && ln -s /usr/lib/nginx/modules /etc/nginx/modules \
+  # forward request and error logs to docker log collector
+  && mkdir /var/log/nginx \
+  && touch /var/log/nginx/access.log /var/log/nginx/error.log \
+  && ln -sf /dev/stdout /var/log/nginx/access.log \
+  && ln -sf /dev/stderr /var/log/nginx/error.log
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY ssl_common.conf /etc/nginx/conf.d/ssl_common.conf
