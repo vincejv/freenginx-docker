@@ -33,6 +33,7 @@ else
 fi
 
 rotate_ech() {
+    log "Rotating ECH keys..."
     mkdir -p "$ECH_DIR" || log "Failed to create $ECH_DIR"
 
     # 1. Generate new ECH key
@@ -89,7 +90,7 @@ rotate_ech() {
 
 # Run once or loop depending on ECH_ROTATION
 if [[ "$ECH_ROTATION" == "true" ]]; then
-    log "Running in loop mode (ECH_ROTATION=true)"
+    log "Running in cron mode (ECH_ROTATION=true)"
     ROTATION_INTERVAL="${ECH_ROTATION_INTERVAL:-3600}"
 
     while true; do
