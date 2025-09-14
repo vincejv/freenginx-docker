@@ -38,6 +38,9 @@ ARG VERSION_OPENSSL=openssl-feature-ech
 # https://github.com/PCRE2Project/pcre2
 ARG PCRE_VERSION=10.46
 
+# https://github.com/zlib-ng/zlib-ng.git
+ARG ZLIB_VERSION=2.2.5
+
 # NGINX UID / GID
 ARG NGINX_USER_UID=100
 ARG NGINX_GROUP_GID=101
@@ -113,6 +116,7 @@ ARG CONFIG="\
 		--with-openssl-opt=enable-quic \
 		--with-openssl-opt=enable-ktls \
 		--with-pcre=/usr/src/pcre2 \
+		--with-zlib=/usr/src/zlib-ng \
 		--add-module=/usr/src/ngx_brotli \
 		--add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
 		--add-module=/usr/src/njs/nginx \
@@ -130,6 +134,7 @@ ARG NGX_BROTLI_COMMIT
 ARG HEADERS_MORE_VERSION
 ARG NJS_COMMIT
 ARG PCRE_VERSION
+ARG ZLIB_VERSION
 ARG GEOIP2_VERSION
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
@@ -280,6 +285,17 @@ RUN \
   && git fetch --depth 1 origin pcre2-${PCRE_VERSION} \
   && git checkout -q FETCH_HEAD \
   && git submodule update --init --recursive --depth 1
+
+RUN \
+  echo "Cloning and configuring zlib-ng ..." \
+  && mkdir /usr/src/zlib-ng \
+  && cd /usr/src/zlib-ng \
+  && git init \
+  && git remote add origin https://github.com/zlib-ng/zlib-ng.git \
+  && git fetch --depth 1 origin ${ZLIB_VERSION} \
+  && git checkout -q FETCH_HEAD \
+  && sed -i "s/compat=0/compat=1/" /usr/src/zlib-ng/configure \
+  && ./configure --zlib-compat
 
 RUN \
   echo "Building nginx ..." \
