@@ -3,7 +3,7 @@ ARG NGINX_VERSION=1.29.1
 
 # https://github.com/freenginx/nginx
 # freenginx-ech fork
-ARG NGINX_COMMIT=ac09f9cb8ddb23c025a237028fe15aaf2fcb8030
+ARG NGINX_COMMIT=e7812be3e8edcfae908676ab311db44c7c7ba192
 ARG NGINX_REV=352c8eb2b67c
 
 # https://github.com/google/ngx_brotli
