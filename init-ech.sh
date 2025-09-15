@@ -31,6 +31,6 @@ log "Symlinks initialized: $(ls -l $DOMAIN*.ech | tr '\n' ' | ')"
 
 # 3-4. Update DNS Records
 source /usr/local/bin/update_https_records.sh
-update_https_records || { log "Error: Failed to update HTTPS DNS records"; exit 1; }
+update_https_records >>"$LOGFILE" 2>&1 &
 
-log "Initial ECH setup complete"
+log "Initial ECH setup complete, DNS records will be updated in the background"

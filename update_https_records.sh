@@ -2,6 +2,8 @@
 # update_https_records.sh - Reusable DNS Update function
 
 update_https_records() {
+    log "Updating DNS HTTPS records..."
+    
     # 1. Extract ECHConfig from new key
     ECHCONFIG=$(awk '/-----BEGIN ECHCONFIG-----/{flag=1;next}/-----END ECHCONFIG-----/{flag=0}flag' "$NEW_KEY" | tr -d '\n')
     if [[ -z "$ECHCONFIG" ]]; then
