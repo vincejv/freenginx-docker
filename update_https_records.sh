@@ -66,6 +66,7 @@ update_https_records() {
 
     # final batch body: include only the arrays you need (Cloudflare accepts empty arrays)
     BATCH=$(jq -n --argjson posts "$POSTS_JSON" --argjson patches "$PATCHES_JSON" '{posts:$posts, patches:$patches}')
+    log "Submitting API curl batch update: $BATCH"
 
     # send the batch
     CF_RESULT=$(curl "${CURL_OPTS[@]}" -X POST "$CF_ZONE_URL/$CF_ZONE_ID/dns_records/batch" \
@@ -74,5 +75,5 @@ update_https_records() {
     --data "$BATCH")
 
     # show response
-    echo "$CF_RESULT" | jq -C .
+    log "$CF_RESULT" | jq -C .
 }

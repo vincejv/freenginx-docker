@@ -112,6 +112,7 @@ rotate_ech() {
             BATCH=$(jq -n --argjson puts "$PUTS_JSON" '{puts:$puts}')
 
             log "Submitting rollback batch with ${#ROLLBACK[@]} records"
+            log "Rollback batch records: $BATCH"
             CF_RESULT=$(curl -s -X POST "$CF_ZONE_URL/$CF_ZONE_ID/dns_records/batch" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json" \
