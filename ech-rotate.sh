@@ -24,14 +24,6 @@ SUBDOMAINS="${SUBDOMAINS:?Must set SUBDOMAINS (space-separated list)}"
 ECH_ROTATION="${ECH_ROTATION:-false}"   # default: disabled
 KEEP_KEYS="${KEEP_KEYS:-3}"             # number of old timestamped keys to keep
 
-IFS=' ' read -r -a SUBDOMAINS_ARR <<< "$SUBDOMAINS"
-if [[ ${#SUBDOMAINS_ARR[@]} -eq 0 ]]; then
-    log "No subdomains extracted (SUBDOMAINS was empty) not proceeding with ECH rotation"
-    return 1 
-else
-    log "Subdomains extracted: ${SUBDOMAINS_ARR[*]}"
-fi
-
 rotate_ech() {
     log "Rotating ECH keys..."
     mkdir -p "$ECH_DIR" || log "Failed to create $ECH_DIR"

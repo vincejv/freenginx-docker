@@ -10,8 +10,17 @@ update_https_records() {
     fi
     log "Extracted ECHConfig (length: ${#ECHCONFIG})"
 
+    # 2. Extract subdomains
+    IFS=' ' read -r -a SUBDOMAINS_ARR <<< "$SUBDOMAINS"
+    if [[ ${#SUBDOMAINS_ARR[@]} -eq 0 ]]; then
+        log "No subdomains extracted (SUBDOMAINS was empty) not proceeding with ECH key initialization"
+        return 1 
+    else
+        log "Subdomains extracted: ${SUBDOMAINS_ARR[*]}"
+    fi
+
     # Common curl options
-    # 2. Publish HTTPS DNS record to Cloudflare (update only ech field)
+    # 3. Publish HTTPS DNS record to Cloudflare (update only ech field)
     CURL_OPTS=(-s --retry 5 --retry-delay 2 --retry-connrefused)
     for d in "${SUBDOMAINS_ARR[@]}"; do
         RECORD=$(curl "${CURL_OPTS[@]}" -X GET "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS&name=$d" \
