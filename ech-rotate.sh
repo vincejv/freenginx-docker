@@ -62,7 +62,7 @@ rotate_ech() {
     fi
 
     # 5-6. Update DNS Records
-    source ./update_https_records.sh
+    source /usr/local/bin/update_https_records.sh
     update_https_records || { log "Error: Failed to update HTTPS DNS records"; return 1; }
 
     # 7. Cleanup old keys (keep latest N timestamped files, skip symlink targets)
