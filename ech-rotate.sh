@@ -102,7 +102,9 @@ rotate_ech() {
 
             if [[ "$rec" != "$cur" ]]; then
                 log "Will restore record $rec_id"
-                ROLLBACK+=("$rec")
+                # Make sure to keep only fields CF accepts, including id
+                clean=$(jq '{id, type, name, content, ttl, proxied, priority, data, comment, tags}' <<<"$rec")
+                ROLLBACK+=("$clean")
             fi
         done < <(jq -c '.result[]' "$backup_file")
 
