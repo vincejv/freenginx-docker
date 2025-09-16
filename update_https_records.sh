@@ -3,7 +3,7 @@
 
 update_https_records() {
     log "Updating DNS HTTPS records..."
-    
+
     # 1. Extract ECHConfig from new key
     ECHCONFIG=$(awk '/-----BEGIN ECHCONFIG-----/{flag=1;next}/-----END ECHCONFIG-----/{flag=0}flag' "$NEW_KEY" | tr -d '\n')
     if [[ -z "$ECHCONFIG" ]]; then
@@ -23,53 +23,67 @@ update_https_records() {
 
     # Common curl options
     # 3. Publish HTTPS DNS record to Cloudflare (update only ech field)
+    # Common curl options
+    # use the DNS batch API schema (posts, patches, puts, deletes)
     CURL_OPTS=(-s --retry 5 --retry-delay 2 --retry-connrefused)
+
+    POSTS=()
+    PATCHES=()
+
+    # Fetch all HTTPS records once
+    ALL_RECORDS=$(curl "${CURL_OPTS[@]}" -G \
+        --data-urlencode "type=HTTPS" \
+        -H "Authorization: Bearer $CF_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        "$CF_ZONE_URL/$CF_ZONE_ID/dns_records")
+
     for d in "${SUBDOMAINS_ARR[@]}"; do
-        RECORD=$(curl "${CURL_OPTS[@]}" -X GET "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS&name=$d" \
-            -H "Authorization: Bearer $CF_API_TOKEN" \
-            -H "Content-Type: application/json")
+        RECORD_RAW=$(jq --arg name "$d" '.result[] | select(.name==$name)' <<<"$ALL_RECORDS")
 
-        RECORD_ID=$(echo "$RECORD" | jq -r '.result[0].id')
-        RECORD_DATA=$(echo "$RECORD" | jq '.result[0].data')
-
-        if [[ "$RECORD_ID" == "null" ]]; then
-            log "No HTTPS record found for $d, inserting new HTTPS record"
-            UPDATED_DATA=$(jq -n --arg ech "$ECHCONFIG" '{
-                value: "ech=\"\($ech)\"",
-                priority: "1",
-                target: ".",
-            }')
-            METHOD="POST"
-            URL="$CF_ZONE_URL/$CF_ZONE_ID/dns_records"
+        if [ -z "$RECORD_RAW" ]; then
+            # no existing record -> prepare POST
+            POSTS+=( "$(jq -n --arg name "$d" --arg ech "$ECHCONFIG" '{
+                name: $name,
+                type: "HTTPS",
+                data: { value: ("ech=\"" + $ech + "\""), priority: "1", target: "." }
+            }')" )
         else
-            log "HTTPS record found for $d, updating ech public key"
-            # Replace the ech record in HTTPS DNS record
-            UPDATED_DATA=$(echo "$RECORD_DATA" \
-            | jq --arg ECH "$ECHCONFIG" '
-                if .value | test("ech=")
-                then .value |= sub("ech=\"[^\"]*\""; "ech=\"\($ECH)\"")
-                else .value += " ech=\"\($ECH)\""
-                end
-            ')
-            METHOD="PUT"
-            URL="$CF_ZONE_URL/$CF_ZONE_ID/dns_records/$RECORD_ID"
+            # existing record -> produce a minimal patch object
+            PATCHES+=( "$(jq --arg ECH "$ECHCONFIG" '{
+                id,
+                data: (
+                    .data | .value |= (
+                        if test("ech=") then
+                            sub("ech=\"[^\"]*\""; "ech=\"\($ECH)\"")
+                        else
+                            . + " ech=\"\($ECH)\""
+                        end
+                    )
+                )
+            }' <<<"$RECORD_RAW")" )
         fi
-
-        UPDATED_DATA=$(jq -n --arg name "$d" --argjson data "$UPDATED_DATA" '{type:"HTTPS", name:$name, data:$data}')
-        log "Pushing updated HTTPS record for $d: $UPDATED_DATA"
-
-        sleep 0.3
-
-        CF_RESULT=$(curl "${CURL_OPTS[@]}" -X "$METHOD" "$URL" \
-            -H "Authorization: Bearer $CF_API_TOKEN" \
-            -H "Content-Type: application/json" \
-            --data "$UPDATED_DATA") || log "Failed to push DNS record for $d"
-
-        if echo "$CF_RESULT" | grep -q '"success":true'; then
-            log "Updated ech for $d (record $RECORD_ID)"
-        else
-            log "Failed to update ech for $d: $CF_RESULT"
-        fi
-        sleep 0.3
     done
+
+    # build JSON arrays (empty arrays if there are no items)
+    POSTS_JSON=$(printf '%s\n' "${POSTS[@]}" | jq -s '.' )
+    PATCHES_JSON=$(printf '%s\n' "${PATCHES[@]}" | jq -s '.' )
+
+    # final batch body: include only the arrays you need (Cloudflare accepts empty arrays)
+    BATCH=$(jq -n --argjson posts "$POSTS_JSON" --argjson patches "$PATCHES_JSON" '{posts:$posts, patches:$patches}')
+    log "Submitting API curl batch update: $BATCH"
+
+    # send the batch
+    CF_RESULT=$(curl "${CURL_OPTS[@]}" -X POST "$CF_ZONE_URL/$CF_ZONE_ID/dns_records/batch" \
+        -H "Authorization: Bearer $CF_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        --data "$BATCH")
+
+    # check success
+    if jq -e '.success == true' >/dev/null 2>&1 <<<"$CF_RESULT"; then
+        log "Cloudflare batch update success"
+    else
+        log "Cloudflare batch update failed:"
+        echo "$CF_RESULT" | jq -C . >&2
+        return 1
+    fi
 }

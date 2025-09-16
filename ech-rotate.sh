@@ -24,23 +24,7 @@ SUBDOMAINS="${SUBDOMAINS:?Must set SUBDOMAINS (space-separated list)}"
 ECH_ROTATION="${ECH_ROTATION:-false}"   # default: disabled
 KEEP_KEYS="${KEEP_KEYS:-3}"             # number of old timestamped keys to keep
 
-rotate_ech() {
-    log "Rotating ECH keys..."
-    mkdir -p "$ECH_DIR" || log "Failed to create $ECH_DIR"
-
-    # 1. Generate new ECH key
-    NEW_KEY="$ECH_DIR/$DOMAIN.$(date +%Y%m%d%H).pem.ech"
-    openssl-ech ech -public_name "$DOMAIN" -out "$NEW_KEY"
-    log "Generated: $NEW_KEY"
-
-    # 2. Ensure symlinks exist, fill missing ones with latest
-    cd "$ECH_DIR" || return 1
-    ln -sf "$(readlink "$DOMAIN.previous.ech")" "$DOMAIN.stale.ech"
-    ln -sf "$(readlink "$DOMAIN.ech")" "$DOMAIN.previous.ech"
-    ln -sf "$(basename "$NEW_KEY")" "$DOMAIN.ech"
-    log "Symlinks rotated: ech -> $(readlink "$DOMAIN.ech"), previous.ech -> $(readlink "$DOMAIN.previous.ech"), stale.ech -> $(readlink "$DOMAIN.stale.ech")"
-
-    # 4. Reload nginx
+reload_nginx() {
     if [[ -f "$PIDFILE" ]]; then
         PID=$(cat "$PIDFILE")
         if kill -0 "$PID" 2>/dev/null; then
@@ -52,10 +36,101 @@ rotate_ech() {
     else
         log "PID file not found: $PIDFILE"
     fi
+}
+
+rotate_ech() {
+    log "Rotating ECH keys..."
+    mkdir -p "$ECH_DIR" || log "Failed to create $ECH_DIR"
+
+    # 1. Generate new ECH key
+    NEW_KEY="$ECH_DIR/$DOMAIN.$(date +%Y%m%d%H).pem.ech"
+    openssl-ech ech -public_name "$DOMAIN" -out "$NEW_KEY"
+    log "Generated: $NEW_KEY"
+
+    # 2. Ensure symlinks exist, fill missing ones with latest
+    cd "$ECH_DIR" || return 1
+
+    # Before rotation, capture current symlinks for rollback
+    old_latest=$(readlink -f "$DOMAIN.ech" 2>/dev/null || true)
+    old_previous=$(readlink -f "$DOMAIN.previous.ech" 2>/dev/null || true)
+    old_stale=$(readlink -f "$DOMAIN.stale.ech" 2>/dev/null || true)
+
+    ln -sf "$(readlink "$DOMAIN.previous.ech")" "$DOMAIN.stale.ech"
+    ln -sf "$(readlink "$DOMAIN.ech")" "$DOMAIN.previous.ech"
+    ln -sf "$(basename "$NEW_KEY")" "$DOMAIN.ech"
+    log "Symlinks rotated: ech -> $(readlink "$DOMAIN.ech"), previous.ech -> $(readlink "$DOMAIN.previous.ech"), stale.ech -> $(readlink "$DOMAIN.stale.ech")"
+
+    # 4. Reload nginx
+    reload_nginx
+
+    # 5. Backup DNS records for rollback
+    backup_file=$(mktemp)
+    curl -s -X GET "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS" \
+        -H "Authorization: Bearer $CF_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        > "$backup_file"
 
     # 5-6. Update DNS Records
     source /usr/local/bin/update_https_records.sh
-    update_https_records || { log "Error: Failed to update HTTPS DNS records"; return 1; }
+    # DNS update
+    if ! update_https_records; then
+        log "Error: Failed to update HTTPS DNS records, rolling back ECH keys in nginx..."
+
+        # Roll back symlinks to old state
+        [[ -n "$old_latest"   ]] && ln -sf "$(basename "$old_latest")"   "$DOMAIN.ech"
+        [[ -n "$old_previous" ]] && ln -sf "$(basename "$old_previous")" "$DOMAIN.previous.ech"
+        [[ -n "$old_stale"    ]] && ln -sf "$(basename "$old_stale")"    "$DOMAIN.stale.ech"
+
+        # Optionally delete the new key if not needed and reload nginx
+        rm -f -- "$NEW_KEY"
+        log "Deleted the newly generated key: ${NEW_KEY}"
+        reload_nginx
+
+        log "Rolling back DNS updates..."
+        # Get current state
+        current_file=$(mktemp)
+        curl -s -X GET "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            > "$current_file"
+
+        # Collect rollback candidates
+        ROLLBACK=()
+        while IFS= read -r rec; do
+            rec_id=$(jq -r '.id' <<<"$rec")
+            cur=$(jq -c --arg id "$rec_id" '.result[] | select(.id==$id)' "$current_file")
+
+            if [[ "$rec" != "$cur" ]]; then
+                log "Will restore record $rec_id"
+                # Make sure to keep only fields CF accepts, including id
+                clean=$(jq '{id, type, name, ttl, proxied, data, comment, tags}' <<<"$rec")
+                ROLLBACK+=("$clean")
+            fi
+        done < <(jq -c '.result[]' "$backup_file")
+
+        if [ "${#ROLLBACK[@]}" -gt 0 ]; then
+            # Build batch body with puts
+            PUTS_JSON=$(printf '%s\n' "${ROLLBACK[@]}" | jq -s '.')
+            BATCH=$(jq -n --argjson puts "$PUTS_JSON" '{puts:$puts}')
+
+            log "Submitting rollback batch with ${#ROLLBACK[@]} records: $BATCH"
+            CF_RESULT=$(curl -s -X POST "$CF_ZONE_URL/$CF_ZONE_ID/dns_records/batch" \
+                -H "Authorization: Bearer $CF_API_TOKEN" \
+                -H "Content-Type: application/json" \
+                --data "$BATCH")
+
+            if echo "$CF_RESULT" | grep -q '"success":true'; then
+                log "Rollback batch applied successfully"
+            else
+                log "Rollback batch failed: $CF_RESULT"
+            fi
+        else
+            log "No changes detected, nothing to rollback"
+        fi
+
+        log "ECH key rotation failed, rollback successful"
+        return 1
+    fi
 
     # 7. Cleanup old keys (keep latest N timestamped files, skip symlink targets)
     cd "$ECH_DIR" || return 1
