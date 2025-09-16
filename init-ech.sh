@@ -27,7 +27,7 @@ log "Generated new ECH key: $NEW_KEY"
 for l in ech previous.ech stale.ech; do
     ln -sf "$(basename "$NEW_KEY")" "$DOMAIN.$l"
 done
-log "Symlinks initialized: $(ls -l $DOMAIN*.ech | tr '\n' ' | ')"
+log "Symlinks initialized: ech -> $(readlink "$DOMAIN.ech"), previous.ech -> $(readlink "$DOMAIN.previous.ech"), stale.ech -> $(readlink "$DOMAIN.stale.ech")"
 
 # 3-4. Update DNS Records
 source /usr/local/bin/update_https_records.sh
