@@ -3,8 +3,8 @@ ARG NGINX_VERSION=1.29.1
 
 # https://github.com/freenginx/nginx
 # freenginx-ech fork
-ARG NGINX_COMMIT=e7812be3e8edcfae908676ab311db44c7c7ba192
-ARG NGINX_REV=352c8eb2b67c
+ARG NGINX_COMMIT=e76ec6e8beba5084b9d13fcea6cc13d0fe565070
+ARG NGINX_REV=84f82b372bc0
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
@@ -207,7 +207,7 @@ RUN \
   && mkdir /usr/src/nginx \
   && cd /usr/src/nginx \
   && git init \
-  && git remote add origin https://github.com/vincejv/freenginx-ech.git \
+  && git remote add origin https://github.com/freenginx/nginx.git \
   && git fetch --depth 1 origin ${NGINX_COMMIT} \
   && git checkout -q FETCH_HEAD
 
