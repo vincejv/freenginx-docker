@@ -194,7 +194,7 @@ WORKDIR /usr/src/
 RUN \
   echo "Downloading OpenSSL source code ..." && \
   # curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
-  curl -L https://github.com/openssl/openssl/archive/refs/heads/feature/ech.tar.gz -o openssl.tar.gz && \
+  curl -L https://github.com/vincejv/openssl/archive/refs/heads/feature/ech.tar.gz -o openssl.tar.gz && \
   # echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
   # curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
   mkdir /usr/src/openssl && \
