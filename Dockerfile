@@ -10,7 +10,7 @@ ARG NGINX_REV=84f82b372bc0
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
 # https://github.com/google/boringssl
-#ARG BORINGSSL_COMMIT=fae0964b3d44e94ca2a2d21f86e61dabe683d130
+ARG BORINGSSL_COMMIT=eb895133fba7bb3c5eb962d0f1eab54c49979efe
 
 # https://github.com/nginx/njs/releases/tag/0.9.1
 ARG NJS_VERSION=0.9.1
@@ -31,10 +31,6 @@ ARG FANCYINDEX_COMMIT=cbc0d3fca4f06414612de441399393d4b3bbb315
 # https://github.com/tokers/zstd-nginx-module
 ARG ZSTDNGINX_COMMIT=f4ba115e0b0eaecde545e5f37db6aa18917d8f4b
 
-# https://www.openssl.org/source/
-#ARG VERSION_OPENSSL=openssl-3.5.2
-ARG VERSION_OPENSSL=openssl-feature-ech
-
 # https://github.com/PCRE2Project/pcre2
 ARG PCRE_VERSION=10.46
 
@@ -50,12 +46,12 @@ ARG CFLAGS_OPT="-O3 -pipe -falign-functions=32 -fdata-sections -ffunction-sectio
 ARG LDFLAGS_OPT="-O3 -Wl,--strip-all -Wl,--as-needed"
 
 # NGINX Native CC Opt
-ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs -DTCP_FASTOPEN=23"
-ARG LD_OPT="-s -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--gc-sections -L /usr/src/quickjs -ljemalloc"
+ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs -DTCP_FASTOPEN=23 -I../boringssl/include"
+ARG LD_OPT="-s -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--gc-sections -L /usr/src/quickjs -ljemalloc -L../boringssl/build/ssl -L../boringssl/build/crypto"
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
-  --build=quic-ech-$NGINX_REV \
+  --build=boringssl-quic-ech-$NGINX_REV \
   --prefix=/etc/nginx \
   --sbin-path=/usr/sbin/nginx \
   --modules-path=/usr/lib/nginx/modules \
@@ -106,15 +102,6 @@ ARG CONFIG="\
   --without-mail_pop3_module \
   --without-mail_imap_module \
   --without-mail_smtp_module \
-  --with-openssl=/usr/src/openssl \
-  --with-openssl-opt=enable-ec_nistp_64_gcc_128 \
-  --with-openssl-opt=no-ssl2 \
-  --with-openssl-opt=no-ssl3 \
-  --with-openssl-opt=no-shared \
-  --with-openssl-opt=no-weak-ssl-ciphers \
-  --with-openssl-opt=no-tls-deprecated-ec \
-  --with-openssl-opt=enable-quic \
-  --with-openssl-opt=enable-ktls \
   --with-pcre=/usr/src/pcre2 \
   --with-zlib=/usr/src/zlib-ng \
   --add-module=/usr/src/ngx_brotli \
@@ -140,16 +127,12 @@ ARG GEOIP2_VERSION
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 ARG CONFIG
-ARG VERSION_OPENSSL
 ARG CFLAGS_OPT
 ARG LDFLAGS_OPT
 ARG CC_OPT
 ARG LD_OPT
 
-ENV VERSION_OPENSSL=$VERSION_OPENSSL \
-  SHA256_OPENSSL=c53a47e5e441c930c3928cf7bf6fb00e5d129b630e0aa873b08258656e7345ec \
-  SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download/ \
-  CFLAGS="$CFLAGS_OPT" \
+ENV CFLAGS="$CFLAGS_OPT" \
   CXXFLAGS="$CFLAGS_OPT" \
   CPPFLAGS="$CFLAGS_OPT" \
   LDFLAGS="$LDFLAGS_OPT" \
@@ -192,16 +175,6 @@ RUN \
 WORKDIR /usr/src/
 
 RUN \
-  echo "Downloading OpenSSL source code ..." && \
-  # curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
-  curl -L https://github.com/vincejv/openssl/archive/refs/heads/feature/ech.tar.gz -o openssl.tar.gz && \
-  # echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
-  # curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
-  mkdir /usr/src/openssl && \
-  cd /usr/src/openssl && \
-  tar -xzf ../openssl.tar.gz --strip-components=1
-
-RUN \
   echo "Cloning nginx $NGINX_VERSION (commit $NGINX_COMMIT from 'default' branch) ..." \
   # && hg clone -b default --rev $NGINX_COMMIT https://freenginx.org/hg/nginx/ /usr/src/nginx-$NGINX_VERSION
   && mkdir /usr/src/nginx \
@@ -222,20 +195,20 @@ RUN \
   && git submodule update --init --depth 1
 
 # hadolint ignore=SC2086
-#RUN \
-#  echo "Cloning boringssl ..." \
-#  && cd /usr/src \
-#  && git clone https://github.com/google/boringssl \
-#  && cd boringssl \
-#  && git checkout $BORINGSSL_COMMIT
+RUN \
+ echo "Cloning boringssl ..." \
+ && cd /usr/src \
+ && git clone --depth 1 https://github.com/google/boringssl \
+ && cd boringssl \
+ && git checkout $BORINGSSL_COMMIT
 
-#RUN \
-#  echo "Building boringssl ..." \
-#  && cd /usr/src/boringssl \
-#  && mkdir build \
-#  && cd build \
-#  && cmake -GNinja .. \
-#  && ninja
+RUN \
+ echo "Building boringssl ..." \
+ && cd /usr/src/boringssl \
+ && mkdir build \
+ && cd build \
+ && cmake -GNinja .. \
+ && ninja
 
 RUN \
   echo "Downloading headers-more-nginx-module ..." \
@@ -305,7 +278,7 @@ RUN \
   && mkdir /etc/nginx/conf.d/ \
   && strip /usr/sbin/nginx* \
   && strip /usr/lib/nginx/modules/*.so \
-  && strip /usr/src/openssl/.openssl/bin/openssl \
+  && strip /usr/src/boringssl/build/bssl \
   \
   # https://tools.ietf.org/html/rfc7919
   # https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
@@ -327,7 +300,7 @@ COPY --from=base /etc/ssl/dhparam.pem /etc/ssl/dhparam.pem
 COPY --from=base /usr/sbin/njs /usr/sbin/njs
 
 # OpenSSL ECH binaries
-COPY --from=base /usr/src/openssl/.openssl/bin/openssl /usr/bin/openssl-ech
+COPY --from=base /usr/src/boringssl/build/bssl /usr/bin/bssl
 
 # Runtime environment
 # hadolint ignore=SC2046
