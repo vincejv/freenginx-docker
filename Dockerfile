@@ -332,7 +332,7 @@ groupadd --gid $NGINX_GROUP_GID nginx \
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY ssl_common.conf /etc/nginx/conf.d/ssl_common.conf
-COPY ech-rotate.sh init-ech.sh update-https-records.sh /usr/local/bin
+COPY ech-rotate.sh init-ech.sh update-https-records.sh generate-ech-key.sh /usr/local/bin
 COPY start-nginx.sh /start-nginx.sh
 
 # Make scripts executable
