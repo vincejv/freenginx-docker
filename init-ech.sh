@@ -38,7 +38,7 @@ done
 log "Symlinks initialized: ech -> $(readlink "$DOMAIN.ech"), previous.ech -> $(readlink "$DOMAIN.previous.ech"), stale.ech -> $(readlink "$DOMAIN.stale.ech")"
 
 # 3-4. Update DNS Records
-source /usr/local/bin/update_https_records.sh
+source /usr/local/bin/update-https-records.sh
 update_https_records >>"$LOGFILE" 2>&1 &
 
 log "Initial ECH setup complete, DNS records will be updated in the background"

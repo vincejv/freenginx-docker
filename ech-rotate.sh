@@ -79,7 +79,7 @@ rotate_ech() {
         > "$backup_file"
 
     # 5-6. Update DNS Records
-    source /usr/local/bin/update_https_records.sh
+    source /usr/local/bin/update-https-records.sh
     # DNS update
     if ! update_https_records; then
         log "Error: Failed to update HTTPS DNS records, rolling back ECH keys in nginx..."

@@ -1,5 +1,5 @@
 #!/bin/bash
-# update_https_records.sh - Reusable DNS Update function
+# update-https-records.sh - Reusable DNS Update function
 
 update_https_records() {
     log "Updating DNS HTTPS records..."
