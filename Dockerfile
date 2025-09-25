@@ -10,7 +10,7 @@ ARG NGINX_REV=84f82b372bc0
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
 # https://github.com/google/boringssl
-ARG BORINGSSL_COMMIT=a135fe1fad70e4f87b38b0adebd44d93da7eb173
+ARG BORINGSSL_COMMIT=a34ea4da91402cb24e635da0b5d755fb0086fd97
 
 # https://github.com/nginx/njs/releases/tag/0.9.1
 ARG NJS_VERSION=0.9.1
