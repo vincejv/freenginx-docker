@@ -25,7 +25,7 @@ update_https_records() {
     # 3. Publish HTTPS DNS record to Cloudflare (update only ech field)
     # Common curl options
     # use the DNS batch API schema (posts, patches, puts, deletes)
-    CURL_OPTS=(-s --retry 5 --retry-delay 2 --retry-connrefused)
+    CURL_OPTS=(-s --fail-with-body --retry 5 --retry-delay 2 --retry-connrefused)
 
     POSTS=()
     PATCHES=()
@@ -35,7 +35,17 @@ update_https_records() {
         --data-urlencode "type=HTTPS" \
         -H "Authorization: Bearer $CF_API_TOKEN" \
         -H "Content-Type: application/json" \
-        "$CF_ZONE_URL/$CF_ZONE_ID/dns_records")
+        "$CF_ZONE_URL/$CF_ZONE_ID/dns_records") || {
+            log "Curl request failed (transport or HTTP error) when fetching existing DNS records"
+            return 1
+        }
+
+    # Validate JSON + success flag
+    if ! jq -e '.success == true' >/dev/null 2>&1 <<<"$ALL_RECORDS"; then
+        log "Cloudflare API returned failure or invalid JSON"
+        echo "$ALL_RECORDS" | jq -C . >&2 || echo "$ALL_RECORDS" >&2
+        return 1
+    fi
 
     for d in "${SUBDOMAINS_ARR[@]}"; do
         RECORD_RAW=$(jq --arg name "$d" '.result[] | select(.name==$name)' <<<"$ALL_RECORDS")

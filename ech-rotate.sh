@@ -62,11 +62,27 @@ rotate_ech() {
     reload_nginx
 
     # 5. Backup DNS records for rollback
+    log "Backing up current HTTPS DNS records..."
     backup_file=$(mktemp)
-    curl -s -X GET "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS" \
+
+    BACKUP_RESP=$(curl -s --fail-with-body -X GET \
+        "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS" \
         -H "Authorization: Bearer $CF_API_TOKEN" \
-        -H "Content-Type: application/json" \
-        > "$backup_file"
+        -H "Content-Type: application/json" ) || {
+            log "Failed to contact Cloudflare for backup"
+            return 1
+        }
+
+    # Validate JSON and success flag
+    if ! jq -e '.success == true and (.result | type=="array")' >/dev/null 2>&1 <<<"$BACKUP_RESP"; then
+        log "Backup failed: invalid or unsuccessful Cloudflare response"
+        echo "$BACKUP_RESP" | jq -C . >&2 || echo "$BACKUP_RESP" >&2
+        return 1
+    fi
+
+    # Write only validated data
+    echo "$BACKUP_RESP" > "$backup_file"
+    log "Backup saved to $backup_file (entries: $(jq '.result | length' "$backup_file"))"
 
     # 5-6. Update DNS Records
     source /usr/local/bin/update-https-records.sh
