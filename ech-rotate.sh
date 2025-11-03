@@ -65,7 +65,7 @@ rotate_ech() {
     log "Backing up current HTTPS DNS records..."
     backup_file=$(mktemp)
 
-    BACKUP_RESP=$(curl -s --fail-with-body -X GET \
+    BACKUP_RESP=$(curl -s --fail-with-body --retry 5 --retry-delay 2 --retry-connrefused -X GET \
         "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS" \
         -H "Authorization: Bearer $CF_API_TOKEN" \
         -H "Content-Type: application/json" ) || {
@@ -101,12 +101,28 @@ rotate_ech() {
         reload_nginx
 
         log "Rolling back DNS updates..."
-        # Get current state
+        # Get current state for rollback comparison
+        log "Fetching current HTTPS DNS records before rollback..."
         current_file=$(mktemp)
-        curl -s -X GET "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS" \
+
+        CURRENT_RESP=$(curl -s --fail-with-body --retry 5 --retry-delay 2 --retry-connrefused -X GET \
+            "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
-            -H "Content-Type: application/json" \
-            > "$current_file"
+            -H "Content-Type: application/json") || {
+                log "Failed to contact Cloudflare for current state during rollback"
+                return 1
+            }
+
+        # Validate Cloudflare JSON and success flag
+        if ! jq -e '.success == true and (.result | type=="array")' >/dev/null 2>&1 <<<"$CURRENT_RESP"; then
+            log "Invalid or unsuccessful Cloudflare response when fetching current state"
+            echo "$CURRENT_RESP" | jq -C . >&2 || echo "$CURRENT_RESP" >&2
+            return 1
+        fi
+
+        # Save only verified response
+        echo "$CURRENT_RESP" > "$current_file"
+        log "Fetched current state successfully (entries: $(jq '.result | length' "$current_file"))"
 
         # Collect rollback candidates
         ROLLBACK=()
@@ -128,7 +144,7 @@ rotate_ech() {
             BATCH=$(jq -n --argjson puts "$PUTS_JSON" '{puts:$puts}')
 
             log "Submitting rollback batch with ${#ROLLBACK[@]} records: $BATCH"
-            CF_RESULT=$(curl -s -X POST "$CF_ZONE_URL/$CF_ZONE_ID/dns_records/batch" \
+            CF_RESULT=$(curl -s --fail-with-body --retry 5 --retry-delay 2 --retry-connrefused -X POST "$CF_ZONE_URL/$CF_ZONE_ID/dns_records/batch" \
                 -H "Authorization: Bearer $CF_API_TOKEN" \
                 -H "Content-Type: application/json" \
                 --data "$BATCH")
