@@ -38,15 +38,45 @@ reload_nginx() {
     fi
 }
 
+cleanup_tempfiles() {
+    log "Cleaning up temporary files"
+    rm -f -- "$current_file" "$backup_file"
+}
+
 rotate_ech() {
     log "Rotating ECH keys..."
+    
+    # 1. Backup DNS records for rollback
+    log "Backing up current HTTPS DNS records..."
+    backup_file=$(mktemp)
 
-    # 1. Generate ECH key file
+    BACKUP_RESP=$(curl -s --fail-with-body --retry 5 --retry-delay 2 --retry-connrefused -X GET \
+        "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS" \
+        -H "Authorization: Bearer $CF_API_TOKEN" \
+        -H "Content-Type: application/json" ) || {
+            log "Failed to contact Cloudflare for backup"
+            cleanup_tempfiles
+            return 1
+        }
+
+    # Validate JSON and success flag
+    if ! jq -e '.success == true and (.result | type=="array")' >/dev/null 2>&1 <<<"$BACKUP_RESP"; then
+        log "Backup failed: invalid or unsuccessful Cloudflare response"
+        echo "$BACKUP_RESP" | jq -C . >&2 || echo "$BACKUP_RESP" >&2
+        cleanup_tempfiles
+        return 1
+    fi
+
+    # Write only validated data
+    echo "$BACKUP_RESP" > "$backup_file"
+    log "Backup saved to $backup_file (entries: $(jq '.result | length' "$backup_file"))"
+
+    # 2. Generate ECH key file
     source /usr/local/bin/generate-ech-key.sh
     generate_ech_key
 
-    # 2. Ensure symlinks exist, fill missing ones with latest
-    cd "$ECH_DIR" || return 1
+    # 3. Ensure symlinks exist, fill missing ones with latest
+    cd "$ECH_DIR" || { cleanup_tempfiles; return 1; }
 
     # Before rotation, capture current symlinks for rollback
     old_latest=$(readlink -f "$DOMAIN.ech" 2>/dev/null || true)
@@ -60,29 +90,6 @@ rotate_ech() {
 
     # 4. Reload nginx
     reload_nginx
-
-    # 5. Backup DNS records for rollback
-    log "Backing up current HTTPS DNS records..."
-    backup_file=$(mktemp)
-
-    BACKUP_RESP=$(curl -s --fail-with-body --retry 5 --retry-delay 2 --retry-connrefused -X GET \
-        "$CF_ZONE_URL/$CF_ZONE_ID/dns_records?type=HTTPS" \
-        -H "Authorization: Bearer $CF_API_TOKEN" \
-        -H "Content-Type: application/json" ) || {
-            log "Failed to contact Cloudflare for backup"
-            return 1
-        }
-
-    # Validate JSON and success flag
-    if ! jq -e '.success == true and (.result | type=="array")' >/dev/null 2>&1 <<<"$BACKUP_RESP"; then
-        log "Backup failed: invalid or unsuccessful Cloudflare response"
-        echo "$BACKUP_RESP" | jq -C . >&2 || echo "$BACKUP_RESP" >&2
-        return 1
-    fi
-
-    # Write only validated data
-    echo "$BACKUP_RESP" > "$backup_file"
-    log "Backup saved to $backup_file (entries: $(jq '.result | length' "$backup_file"))"
 
     # 5-6. Update DNS Records
     source /usr/local/bin/update-https-records.sh
@@ -110,6 +117,7 @@ rotate_ech() {
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json") || {
                 log "Failed to contact Cloudflare for current state during rollback"
+                cleanup_tempfiles
                 return 1
             }
 
@@ -117,6 +125,7 @@ rotate_ech() {
         if ! jq -e '.success == true and (.result | type=="array")' >/dev/null 2>&1 <<<"$CURRENT_RESP"; then
             log "Invalid or unsuccessful Cloudflare response when fetching current state"
             echo "$CURRENT_RESP" | jq -C . >&2 || echo "$CURRENT_RESP" >&2
+            cleanup_tempfiles
             return 1
         fi
 
@@ -158,6 +167,7 @@ rotate_ech() {
             log "No changes detected, nothing to rollback"
         fi
 
+        cleanup_tempfiles
         log "ECH key rotation failed, rollback successful"
         return 1
     fi
@@ -181,6 +191,7 @@ rotate_ech() {
         fi
     done
 
+    cleanup_tempfiles
     log "Finished ECH key rotation"
 }
 
