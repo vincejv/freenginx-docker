@@ -14,14 +14,14 @@ ARG BORINGSSL_COMMIT=28efc83e86dc84ff61dcf325dc5c4666615206d8
 # https://github.com/nginx/njs
 ARG NJS_VERSION=0.9.4
 
-# https://github.com/bellard/quickjs/commits/fa628f8c523ecac8ce560c081411e91fcaba2d20/
+# https://github.com/bellard/quickjs
 ARG QUICKJS_COMMIT=fa628f8c523ecac8ce560c081411e91fcaba2d20
 
 # https://github.com/openresty/headers-more-nginx-module#installation
-# we want to have https://github.com/openresty/headers-more-nginx-module/commit/e536bc595d8b490dbc9cf5999ec48fca3f488632
+# we want to have https://github.com/openresty/headers-more-nginx-module
 ARG HEADERS_MORE_VERSION=0.39
 
-# https://github.com/leev/ngx_http_geoip2_module/releases
+# https://github.com/leev/ngx_http_geoip2_module
 ARG GEOIP2_VERSION=3.4
 
 # https://github.com/aperezdc/ngx-fancyindex
@@ -33,7 +33,7 @@ ARG ZSTDNGINX_COMMIT=f4ba115e0b0eaecde545e5f37db6aa18917d8f4b
 # https://github.com/PCRE2Project/pcre2
 ARG PCRE_VERSION=10.47
 
-# https://github.com/zlib-ng/zlib-ng.git
+# https://github.com/zlib-ng/zlib-ng
 ARG ZLIB_VERSION=2.2.5
 
 # NGINX UID / GID
