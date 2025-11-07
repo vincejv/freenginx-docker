@@ -40,7 +40,7 @@ reload_nginx() {
 
 cleanup_tempfiles() {
     log "Cleaning up temporary files"
-    rm -f -- "$current_file" "$backup_file"
+    rm -f -- "${current_file:-}" "${backup_file:-}"
 }
 
 rotate_ech() {
