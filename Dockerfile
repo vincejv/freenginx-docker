@@ -31,7 +31,7 @@ ARG FANCYINDEX_COMMIT=cbc0d3fca4f06414612de441399393d4b3bbb315
 ARG ZSTDNGINX_COMMIT=f4ba115e0b0eaecde545e5f37db6aa18917d8f4b
 
 # https://github.com/PCRE2Project/pcre2
-ARG PCRE_VERSION=10.46
+ARG PCRE_VERSION=10.47
 
 # https://github.com/zlib-ng/zlib-ng.git
 ARG ZLIB_VERSION=2.2.5
