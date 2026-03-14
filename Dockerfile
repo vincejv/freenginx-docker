@@ -12,7 +12,7 @@ ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 ARG BORINGSSL_COMMIT=de8c7af5e7c40153eb6cc0a79ff61a43f4bb03f9
 
 # https://github.com/nginx/njs
-ARG NJS_VERSION=0.9.5
+ARG NJS_VERSION=0.9.6
 
 # https://github.com/bellard/quickjs
 ARG QUICKJS_COMMIT=fa628f8c523ecac8ce560c081411e91fcaba2d20
