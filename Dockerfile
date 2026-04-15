@@ -1,9 +1,9 @@
 # https://hg.nginx.org/nginx/file/tip/src/core/nginx.h
-ARG NGINX_VERSION=1.29.7
+ARG NGINX_VERSION=1.30.0
 
 # https://github.com/freenginx/nginx
-ARG NGINX_COMMIT=424c283510d95f98019c1dd838624abbdcf77324
-ARG NGINX_REV=cac0fa572138
+ARG NGINX_COMMIT=2d3dcdb3fc0c7747fd5efaf39857f1af6a9d9dfa
+ARG NGINX_REV=f126ef64a014
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
