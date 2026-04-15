@@ -146,8 +146,8 @@ ARG CC_OPT
 ARG LD_OPT
 
 ENV VERSION_OPENSSL=$VERSION_OPENSSL \
-  SHA256_OPENSSL=fc95c4e6b744b8256f4f428d31e105fc678c94d5fe1a7add01c22d589296e862 \
-  SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download/ \
+  SHA256_OPENSSL=c32cf49a959c4f345f9606982dd36e7d28f7c58b19c2e25d75624d2b3d2f79ac \
+  SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download \
   CFLAGS="$CFLAGS_OPT" \
   CXXFLAGS="$CFLAGS_OPT" \
   CPPFLAGS="$CFLAGS_OPT" \
