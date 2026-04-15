@@ -146,6 +146,7 @@ ARG CC_OPT
 ARG LD_OPT
 
 ENV VERSION_OPENSSL=$VERSION_OPENSSL \
+  SHA256_OPENSSL=fc95c4e6b744b8256f4f428d31e105fc678c94d5fe1a7add01c22d589296e862 \
   SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download/ \
   CFLAGS="$CFLAGS_OPT" \
   CXXFLAGS="$CFLAGS_OPT" \
@@ -191,10 +192,9 @@ WORKDIR /usr/src/
 
 RUN \
   echo "Downloading OpenSSL source code ..." && \
-  # curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
-  curl -L https://github.com/vincejv/openssl/archive/refs/heads/feature/ech.tar.gz -o openssl.tar.gz && \
-  # echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
-  # curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
+  curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz -o openssl.tar.gz && \
+  echo "${SHA256_OPENSSL} ./openssl.tar.gz" | sha256sum -c - && \
+  curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
   mkdir /usr/src/openssl && \
   cd /usr/src/openssl && \
   tar -xzf ../openssl.tar.gz --strip-components=1
