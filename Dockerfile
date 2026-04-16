@@ -54,7 +54,7 @@ ARG LD_OPT="-s -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--gc-section
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
-  --build=boringssl-quic-ech-$NGINX_REV \
+  --build=quic-ech-$NGINX_REV \
   --prefix=/etc/nginx \
   --sbin-path=/usr/sbin/nginx \
   --modules-path=/usr/lib/nginx/modules \
