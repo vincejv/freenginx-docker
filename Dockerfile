@@ -1,9 +1,9 @@
 # https://hg.nginx.org/nginx/file/tip/src/core/nginx.h
-ARG NGINX_VERSION=1.30.0
+ARG NGINX_VERSION=1.11.4
 
 # https://github.com/freenginx/nginx
-ARG NGINX_COMMIT=2d3dcdb3fc0c7747fd5efaf39857f1af6a9d9dfa
-ARG NGINX_REV=f126ef64a014
+ARG NGINX_COMMIT=32b19e0a25e1b02172ff446fa0e196452876cacc
+ARG NGINX_REV=32b19e0
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
@@ -205,7 +205,7 @@ RUN \
   && mkdir /usr/src/nginx \
   && cd /usr/src/nginx \
   && git init \
-  && git remote add origin https://github.com/freenginx/nginx.git \
+  && git remote add origin https://github.com/webserver-llc/angie.git \
   && git fetch --depth 1 origin ${NGINX_COMMIT} \
   && git checkout -q FETCH_HEAD
 
@@ -285,11 +285,13 @@ RUN \
   && cd /usr/src/zlib-ng \
   && ./configure --zlib-compat
 
+COPY ech-angie.patch /usr/src/nginx/ech-angie.patch
 RUN \
   echo "Building nginx ..." \
   && mkdir -p /var/run/nginx/ \
   && cd /usr/src/nginx \
-  && ./auto/configure \
+  && git apply "ech-angie.patch" \
+  && ./configure \
     --with-cc-opt="$CC_OPT" \
     --with-ld-opt="$LD_OPT" \
     $CONFIG \

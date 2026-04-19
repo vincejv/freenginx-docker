@@ -1,0 +1,161 @@
+From 70b6b4b9923217ed3e12cf27bc6117aa5d37f0d7 Mon Sep 17 00:00:00 2001
+From: Vince JV <1276544+vincejv@users.noreply.github.com>
+Date: Mon, 20 Apr 2026 10:42:04 +0800
+Subject: [PATCH] SSL: compatibility with OpenSSL 4.0.
+
+X509_get_issuer_name() and X509_get_subject_name() were changed to return
+a const value.  Since it is passed to functions with a non const argument
+in older versions, the const modifier is conditionally compiled as needed.
+
+ASN1_INTEGER was made opaque.  ASN1_STRING accessors are used to preserve
+the behaviour.  ASN1_STRING_get0_data() compat shim is provided for OpenSSL
+< 1.1.0 where it does not exist.
+
+--HG--
+branch : nginx
+---
+ src/event/ngx_event_openssl.c          | 25 ++++++++++++++++++++++---
+ src/event/ngx_event_openssl.h          |  5 +++++
+ src/event/ngx_event_openssl_stapling.c | 15 +++++++++------
+ 3 files changed, 36 insertions(+), 9 deletions(-)
+
+diff --git a/src/event/ngx_event_openssl.c b/src/event/ngx_event_openssl.c
+index 9a99ec1b7..43c0df1da 100644
+--- a/src/event/ngx_event_openssl.c
++++ b/src/event/ngx_event_openssl.c
+@@ -1114,6 +1114,10 @@ ngx_ssl_client_certificate(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *cert,
+     char                 *err;
+     X509                 *x509;
+     X509_NAME            *name;
++#if (OPENSSL_VERSION_NUMBER >= 0x40000000L)
++    const
++#endif
++    X509_NAME            *sname;
+     X509_STORE           *store;
+     STACK_OF(X509)       *chain;
+     STACK_OF(X509_NAME)  *list;
+@@ -1169,8 +1173,8 @@ ngx_ssl_client_certificate(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *cert,
+             return NGX_ERROR;
+         }
+ 
+-        name = X509_get_subject_name(x509);
+-        if (name == NULL) {
++        sname = X509_get_subject_name(x509);
++        if (sname == NULL) {
+             ngx_ssl_error(NGX_LOG_EMERG, ssl->log, 0,
+                           "X509_get_subject_name(\"%s\") failed", cert->data);
+             sk_X509_NAME_pop_free(list, X509_NAME_free);
+@@ -1178,7 +1182,7 @@ ngx_ssl_client_certificate(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *cert,
+             return NGX_ERROR;
+         }
+ 
+-        name = X509_NAME_dup(name);
++        name = X509_NAME_dup(sname);
+         if (name == NULL) {
+             sk_X509_NAME_pop_free(list, X509_NAME_free);
+             sk_X509_pop_free(chain, X509_free);
+@@ -1363,6 +1367,9 @@ ngx_ssl_verify_callback(int ok, X509_STORE_CTX *x509_store)
+     char              *subject, *issuer;
+     int                err, depth;
+     X509              *cert;
++#if (OPENSSL_VERSION_NUMBER >= 0x40000000L)
++    const
++#endif
+     X509_NAME         *sname, *iname;
+     ngx_connection_t  *c;
+     ngx_ssl_conn_t    *ssl_conn;
+@@ -6382,6 +6389,9 @@ ngx_ssl_get_subject_dn(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
+ {
+     BIO        *bio;
+     X509       *cert;
++#if (OPENSSL_VERSION_NUMBER >= 0x40000000L)
++    const
++#endif
+     X509_NAME  *name;
+ 
+     s->len = 0;
+@@ -6436,6 +6446,9 @@ ngx_ssl_get_issuer_dn(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
+ {
+     BIO        *bio;
+     X509       *cert;
++#if (OPENSSL_VERSION_NUMBER >= 0x40000000L)
++    const
++#endif
+     X509_NAME  *name;
+ 
+     s->len = 0;
+@@ -6492,6 +6505,9 @@ ngx_ssl_get_subject_dn_legacy(ngx_connection_t *c, ngx_pool_t *pool,
+     char       *p;
+     size_t      len;
+     X509       *cert;
++#if (OPENSSL_VERSION_NUMBER >= 0x40000000L)
++    const
++#endif
+     X509_NAME  *name;
+ 
+     s->len = 0;
+@@ -6540,6 +6556,9 @@ ngx_ssl_get_issuer_dn_legacy(ngx_connection_t *c, ngx_pool_t *pool,
+     char       *p;
+     size_t      len;
+     X509       *cert;
++#if (OPENSSL_VERSION_NUMBER >= 0x40000000L)
++    const
++#endif
+     X509_NAME  *name;
+ 
+     s->len = 0;
+diff --git a/src/event/ngx_event_openssl.h b/src/event/ngx_event_openssl.h
+index 6724b9f7d..ab7101e0e 100644
+--- a/src/event/ngx_event_openssl.h
++++ b/src/event/ngx_event_openssl.h
+@@ -71,6 +71,11 @@
+ #endif
+ 
+ 
++#if (OPENSSL_VERSION_NUMBER < 0x1010000fL)
++#define ASN1_STRING_get0_data(x)     (x)->data
++#endif
++
++
+ #if (OPENSSL_VERSION_NUMBER >= 0x30000000L && !defined SSL_get_peer_certificate)
+ #define SSL_get_peer_certificate(s)  SSL_get1_peer_certificate(s)
+ #endif
+diff --git a/src/event/ngx_event_openssl_stapling.c b/src/event/ngx_event_openssl_stapling.c
+index a0a8031c7..0f560f17d 100644
+--- a/src/event/ngx_event_openssl_stapling.c
++++ b/src/event/ngx_event_openssl_stapling.c
+@@ -2667,9 +2667,10 @@ ngx_ssl_ocsp_cache_store(ngx_ssl_ocsp_ctx_t *ctx)
+ static ngx_int_t
+ ngx_ssl_ocsp_create_key(ngx_ssl_ocsp_ctx_t *ctx)
+ {
+-    u_char        *p;
+-    X509_NAME     *name;
+-    ASN1_INTEGER  *serial;
++    u_char           *p;
++    ngx_int_t         length;
++    ASN1_INTEGER     *serial;
++    const X509_NAME  *name;
+ 
+     p = ngx_pnalloc(ctx->pool, 60);
+     if (p == NULL) {
+@@ -2693,12 +2694,14 @@ ngx_ssl_ocsp_create_key(ngx_ssl_ocsp_ctx_t *ctx)
+     p += 20;
+ 
+     serial = X509_get_serialNumber(ctx->cert);
+-    if (serial->length > 20) {
++    length = ASN1_STRING_length(serial);
++
++    if (length > 20) {
+         return NGX_ERROR;
+     }
+ 
+-    p = ngx_cpymem(p, serial->data, serial->length);
+-    ngx_memzero(p, 20 - serial->length);
++    p = ngx_cpymem(p, ASN1_STRING_get0_data(serial), length);
++    ngx_memzero(p, 20 - length);
+ 
+     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, ctx->log, 0,
+                    "ssl ocsp key %xV", &ctx->key);
+-- 
+2.43.0
+
