@@ -46,11 +46,11 @@ ARG NGINX_GROUP_GID=101
 
 # Generic CFLAGS across build
 ARG CFLAGS_OPT="-O3 -pipe -falign-functions=32 -fdata-sections -ffunction-sections -fomit-frame-pointer -Wno-cast-function-type-mismatch -march=sandybridge"
-ARG LDFLAGS_OPT="-O3 -Wl,--strip-all -Wl,--as-needed"
+ARG LDFLAGS_OPT="-O3 -Wl,--strip-all -Wl,--as-needed -fuse-ld=lld"
 
 # NGINX Native CC Opt
-ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge -I../boringssl/include -I /usr/src/quickjs -DTCP_FASTOPEN=23"
-ARG LD_OPT="-s -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--gc-sections -L../boringssl/build -lstdc++ -L /usr/src/quickjs -ljemalloc"
+ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs -DTCP_FASTOPEN=23"
+ARG LD_OPT="-s -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--gc-sections -lstdc++ -L /usr/src/quickjs -ljemalloc"
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
@@ -110,6 +110,7 @@ ARG CONFIG="\
   --with-openssl-opt=no-ssl2 \
   --with-openssl-opt=no-ssl3 \
   --with-openssl-opt=no-shared \
+  --with-openssl-opt=no-tests \
   --with-openssl-opt=no-weak-ssl-ciphers \
   --with-openssl-opt=no-tls-deprecated-ec \
   --with-openssl-opt=enable-quic \
@@ -182,6 +183,7 @@ RUN \
     wget \
     ca-certificates \
     lsb-release \
+    lld \
     llvm \
     clang \
     libmaxminddb-dev \
