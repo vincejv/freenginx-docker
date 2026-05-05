@@ -5,8 +5,6 @@ ARG NGINX_VERSION=1.11.4
 ARG NGINX_COMMIT=32b19e0a25e1b02172ff446fa0e196452876cacc
 ARG NGINX_REV=32b19e0
 
-ARG CLANG_VERSION=22
-
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
@@ -128,7 +126,7 @@ ARG CONFIG="\
   --with-cc=clang \
 "
 
-FROM debian:trixie AS base
+FROM ghcr.io/silkeh/clang:21-trixie AS base
 
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
@@ -187,10 +185,7 @@ RUN \
     lsb-release \
     libmaxminddb-dev \
     libjemalloc-dev \
-    libreadline-dev && \
-  # download install clang and llvm
-  wget https://apt.llvm.org/llvm.sh && \
-  chmod +x llvm.sh && ./llvm.sh $CLANG_VERSION
+    libreadline-dev
 
 WORKDIR /usr/src/
 
