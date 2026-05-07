@@ -349,7 +349,7 @@ RUN \
   # https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
   && wget -q https://ssl-config.mozilla.org/ffdhe2048.txt -O /etc/ssl/dhparam.pem
 
-FROM debian:trixie-slim
+FROM public.ecr.aws/debian/debian:trixie-slim
 ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 
