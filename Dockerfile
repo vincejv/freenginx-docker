@@ -429,6 +429,9 @@ RUN njs -v
 # curl version
 RUN curl -V
 
+# OpenSSL version
+RUN openssl version
+
 # test the configuration
 RUN nginx -V; nginx -t
 

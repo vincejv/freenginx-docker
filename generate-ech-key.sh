@@ -7,9 +7,9 @@ generate_ech_key() {
 
     # 1. Generate new ECH key
     NEW_KEY="$ECH_DIR/$DOMAIN.$(date +%Y%m%d%H).pem.ech"
-    if command -v openssl-ech >/dev/null 2>&1; then
-        log "Detected openssl-ech, using this to generate ECH keys..."
-        openssl-ech ech -public_name "$DOMAIN" -out "$NEW_KEY"
+    if command -v openssl >/dev/null 2>&1; then
+        log "Detected openssl, using this to generate ECH keys..."
+        openssl ech -public_name "$DOMAIN" -out "$NEW_KEY"
     else
         log "Detected BoringSSL, using this to generate ECH keys..."
         bssl generate-ech -out-ech-config tmp.echconfig.bin -out-ech-config-list tmp.echconfiglist.bin -out-private-key tmp.echkey.bin -config-id 0 -public-name "$DOMAIN"
