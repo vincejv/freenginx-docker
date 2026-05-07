@@ -218,6 +218,8 @@ RUN \
   mkdir /usr/src/curl && \
   cd /usr/src/curl && \
   tar -xzf ../curl.tar.gz --strip-components=1 && \
+  export LDFLAGS="${LDFLAGS} -Wl,-rpath,/opt/openssl/lib64" && \
+  export CPPFLAGS="${CPPFLAGS} -I/opt/openssl/include" && \
   echo "Configuring and Building curl source code ..." && \
   ./configure \
     --prefix=/opt/curl \
