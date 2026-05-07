@@ -34,6 +34,10 @@ ARG ZSTDNGINX_COMMIT=f4ba115e0b0eaecde545e5f37db6aa18917d8f4b
 #ARG VERSION_OPENSSL=openssl-3.5.2
 ARG VERSION_OPENSSL=openssl-4.0.0
 
+# https://curl.se/download/
+ARG CURL_VERSION=8.20.0
+ARG SHA256_CURL=fc5819cad3f9f5482669adcdc49a782c15f36d2a0715b395b06d9173593d2dc0
+
 # https://github.com/PCRE2Project/pcre2
 ARG PCRE_VERSION=10.47
 
@@ -206,6 +210,29 @@ RUN \
   make install_sw
 
 RUN \
+  echo "Downloading curl source code ..." && \
+  curl -L https://curl.haxx.se/download/curl-${CURL_VERSION}.tar.gz -o curl.tar.gz && \
+  echo "${SHA256_CURL} ./curl.tar.gz" | sha256sum -c - && \
+  mkdir /usr/src/curl && \
+  cd /usr/src/curl && \
+  tar -xzf ../curl.tar.gz --strip-components=1 && \
+  echo "Configuring and Building curl source code ..." && \
+  ./configure \
+    --prefix=/opt/curl \
+    --enable-shared \
+    --disable-static \
+    --disable-ldap \
+    --enable-ipv6 \
+    --enable-unix-sockets \
+    --with-ssl=/opt/openssl \
+    --with-libssh2 \
+    --disable-docs \
+    --disable-manual \
+    --without-libpsl && \
+  make -j"$(nproc)" V=1 && \
+  make install
+
+RUN \
   echo "Cloning nginx $NGINX_VERSION (commit $NGINX_COMMIT from 'default' branch) ..." \
   # && hg clone -b default --rev $NGINX_COMMIT https://freenginx.org/hg/nginx/ /usr/src/nginx-$NGINX_VERSION
   && mkdir /usr/src/nginx \
@@ -312,6 +339,11 @@ RUN \
   && strip /usr/sbin/nginx* \
   && strip /usr/lib/nginx/modules/*.so \
   && strip /opt/openssl/bin/openssl \
+  && strip /opt/openssl/lib64/libssl.so* \
+  && strip /opt/openssl/lib64/libcrypto.so* \
+  && strip /usr/sbin/njs \
+  && strip /opt/curl/lib/libcurl.so* \
+  && strip /opt/curl/bin/curl \
   \
   # https://tools.ietf.org/html/rfc7919
   # https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
@@ -332,6 +364,10 @@ COPY --from=base /etc/ssl/dhparam.pem /etc/ssl/dhparam.pem
 # COPY --from=base /usr/lib/libcrypto.so* /usr/lib/
 COPY --from=base /usr/sbin/njs /usr/sbin/njs
 
+# Curl with OpenSSL ECH support
+COPY --from=base /opt/curl /usr/bin/curl
+COPY --from=base /opt/curl/lib/libcurl.so* /opt/curl/lib/
+
 # OpenSSL ECH binaries
 COPY --from=base /opt/openssl/lib64/libssl.so* /opt/openssl/lib64/libcrypto.so* /opt/openssl/lib64/
 COPY --from=base /opt/openssl/bin/openssl /usr/bin/openssl
@@ -344,16 +380,13 @@ groupadd --gid $NGINX_GROUP_GID nginx \
   && apt-get update \
   && apt-get install -y --no-install-recommends \
     ca-certificates \
-    curl \
     jq \
     libjemalloc2 \
     tzdata \
-    libssl3 \
     libxml2 \
     libbrotli1 \
     libxslt1.1 \
     libzstd1 \
-    wget \
   # Clean image
   && apt-get clean autoclean \
   && apt-get autoremove --yes \
@@ -378,6 +411,9 @@ RUN env | sort
 
 # njs version
 RUN njs -v
+
+# curl version
+RUN curl -V
 
 # test the configuration
 RUN nginx -V; nginx -t
