@@ -227,7 +227,6 @@ RUN \
     --enable-ipv6 \
     --enable-unix-sockets \
     --with-ssl=/opt/openssl \
-    --with-libssh2 \
     --disable-docs \
     --disable-manual \
     --without-libpsl && \
