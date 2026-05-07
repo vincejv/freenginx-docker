@@ -49,8 +49,8 @@ ARG CFLAGS_OPT="-O3 -pipe -falign-functions=32 -fdata-sections -ffunction-sectio
 ARG LDFLAGS_OPT="-O3 -Wl,--strip-all -Wl,--as-needed -fuse-ld=lld"
 
 # NGINX Native CC Opt
-ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs -DTCP_FASTOPEN=23"
-ARG LD_OPT="-s -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--gc-sections -lstdc++ -L /usr/src/quickjs -ljemalloc"
+ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs -DTCP_FASTOPEN=23 -I/opt/openssl/include"
+ARG LD_OPT="-s -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--gc-sections -lstdc++ -L /usr/src/quickjs -ljemalloc -L/opt/openssl/lib64 -Wl,-rpath,/opt/openssl/lib64"
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
@@ -105,16 +105,6 @@ ARG CONFIG="\
   --without-mail_pop3_module \
   --without-mail_imap_module \
   --without-mail_smtp_module \
-  --with-openssl=/usr/src/openssl \
-  --with-openssl-opt=enable-ec_nistp_64_gcc_128 \
-  --with-openssl-opt=no-ssl2 \
-  --with-openssl-opt=no-ssl3 \
-  --with-openssl-opt=no-shared \
-  --with-openssl-opt=no-tests \
-  --with-openssl-opt=no-weak-ssl-ciphers \
-  --with-openssl-opt=no-tls-deprecated-ec \
-  --with-openssl-opt=enable-quic \
-  --with-openssl-opt=enable-ktls \
   --with-pcre=/usr/src/pcre2 \
   --with-zlib=/usr/src/zlib-ng \
   --add-module=/usr/src/ngx_brotli \
@@ -196,7 +186,24 @@ RUN \
   curl -L $SOURCE_OPENSSL/$VERSION_OPENSSL/$VERSION_OPENSSL.tar.gz.asc -o openssl.tar.gz.asc && \
   mkdir /usr/src/openssl && \
   cd /usr/src/openssl && \
-  tar -xzf ../openssl.tar.gz --strip-components=1
+  tar -xzf ../openssl.tar.gz --strip-components=1 && \
+  echo "Configuring and Building OpenSSL source code ..." && \
+  ./config \
+    --prefix=/opt/openssl \
+    --openssldir=/opt/openssl \
+    no-ssl2 \
+    no-ssl3 \
+    no-weak-ssl-ciphers \
+    no-tls-deprecated-ec \
+    no-tests \
+    enable-quic \
+    enable-ktls \
+    enable-ec_nistp_64_gcc_128 \
+    -DOPENSSL_NO_HEARTBEATS \
+    -fstack-protector-strong && \
+  make depend && \
+  nproc | xargs -I % make -j% && \
+  make install_sw
 
 RUN \
   echo "Cloning nginx $NGINX_VERSION (commit $NGINX_COMMIT from 'default' branch) ..." \
@@ -326,7 +333,8 @@ COPY --from=base /etc/ssl/dhparam.pem /etc/ssl/dhparam.pem
 COPY --from=base /usr/sbin/njs /usr/sbin/njs
 
 # OpenSSL ECH binaries
-COPY --from=base /usr/src/openssl/.openssl/bin/openssl /usr/bin/openssl-ech
+COPY --from=base /opt/openssl/lib64/libssl.so* /opt/openssl/lib64/libcrypto.so* /opt/openssl/lib64/
+COPY --from=base /opt/openssl/bin/openssl /usr/bin/openssl
 
 # Runtime environment
 # hadolint ignore=SC2046
