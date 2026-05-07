@@ -366,7 +366,7 @@ COPY --from=base /etc/ssl/dhparam.pem /etc/ssl/dhparam.pem
 COPY --from=base /usr/sbin/njs /usr/sbin/njs
 
 # Curl with OpenSSL ECH support
-COPY --from=base /opt/curl /usr/bin/curl
+COPY --from=base /opt/curl/bin/curl /usr/bin/curl
 COPY --from=base /opt/curl/lib/libcurl.so* /opt/curl/lib/
 
 # OpenSSL ECH binaries
