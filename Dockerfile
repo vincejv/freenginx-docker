@@ -49,7 +49,7 @@ ARG CFLAGS_OPT="-O3 -pipe -falign-functions=32 -fdata-sections -ffunction-sectio
 ARG LDFLAGS_OPT="-O3 -Wl,--strip-all -Wl,--as-needed -fuse-ld=lld"
 
 # NGINX Native CC Opt
-ARG CC_OPT="-O3 -flto -ffat-lto-objects -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs -DTCP_FASTOPEN=23 -I/opt/openssl/include"
+ARG CC_OPT="-O3 -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs -DTCP_FASTOPEN=23 -I/opt/openssl/include"
 ARG LD_OPT="-s -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--gc-sections -lstdc++ -L /usr/src/quickjs -ljemalloc -L/opt/openssl/lib64 -Wl,-rpath,/opt/openssl/lib64"
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
