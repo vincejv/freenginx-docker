@@ -358,6 +358,19 @@ RUN \
   && strip /usr/sbin/njs \
   && strip /opt/curl/lib/libcurl.so* \
   && strip /opt/curl/bin/curl \
+  # -------------------------
+  # OpenSSL cleanup
+  # -------------------------
+  && rm -rf /opt/openssl/lib64/*.a \
+         /opt/openssl/lib64/cmake \
+         /opt/openssl/lib64/pkgconfig \
+         /opt/openssl/lib64/ossl-modules \
+  \
+  # -------------------------
+  # curl cleanup
+  # -------------------------
+  && rm -rf /opt/curl/lib/libcurl.la \
+         /opt/curl/lib/pkgconfig \
   \
   # https://tools.ietf.org/html/rfc7919
   # https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
@@ -385,8 +398,8 @@ COPY --from=base /opt/openssl/bin/openssl /usr/bin/openssl
 # Runtime environment
 # hadolint ignore=SC2046
 RUN \
-groupadd --gid $NGINX_GROUP_GID nginx \
-&& useradd --uid $NGINX_USER_UID --system --create-home --home-dir /var/cache/nginx --shell /usr/sbin/nologin --gid nginx nginx \
+  groupadd --gid $NGINX_GROUP_GID nginx \
+  && useradd --uid $NGINX_USER_UID --system --create-home --home-dir /var/cache/nginx --shell /usr/sbin/nologin --gid nginx nginx \
   && apt-get update \
   && apt-get install -y --no-install-recommends \
     ca-certificates \
