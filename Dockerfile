@@ -368,22 +368,18 @@ ARG NGINX_USER_UID
 ARG NGINX_GROUP_GID
 
 COPY --from=base /var/run/nginx/ /var/run/nginx/
-# COPY --from=base /tmp/runDeps.txt /tmp/runDeps.txt
 COPY --from=base /etc/nginx /etc/nginx
 COPY --from=base /usr/lib/nginx/modules/*.so /usr/lib/nginx/modules/
 COPY --from=base /usr/sbin/nginx /usr/sbin/
-# COPY --from=base /usr/local/lib/perl5/site_perl /usr/local/lib/perl5/site_perl
-# COPY --from=base /usr/bin/envsubst /usr/local/bin/envsubst
 COPY --from=base /etc/ssl/dhparam.pem /etc/ssl/dhparam.pem
-# COPY --from=base /usr/lib/libcrypto.so* /usr/lib/
 COPY --from=base /usr/sbin/njs /usr/sbin/njs
 
 # Curl with OpenSSL ECH support
 COPY --from=base /opt/curl/bin/curl /usr/bin/curl
-COPY --from=base /opt/curl/lib/libcurl.so* /opt/curl/lib/
+COPY --from=base /opt/curl/lib /opt/curl/lib/
 
 # OpenSSL ECH binaries
-COPY --from=base /opt/openssl/lib64/libssl.so* /opt/openssl/lib64/libcrypto.so* /opt/openssl/lib64/
+COPY --from=base /opt/openssl/lib64 /opt/openssl/lib64
 COPY --from=base /opt/openssl/bin/openssl /usr/bin/openssl
 
 # Runtime environment
