@@ -226,8 +226,19 @@ RUN \
     --enable-shared \
     --disable-static \
     --disable-ldap \
+    --disable-rtsp \
+    --disable-dict \
+    --disable-file \
+    --disable-ftp \
+    --disable-gopher \
+    --disable-imap \
+    --disable-ipfs \
+    --disable-mqtt \
+    --disable-pop3 \
+    --disable-smtp \
+    --disable-telnet \
+    --disable-tftp \
     --enable-ipv6 \
-    --enable-unix-sockets \
     --with-ssl=/opt/openssl \
     --disable-docs \
     --disable-manual \
