@@ -311,7 +311,7 @@ RUN \
   && mkdir /etc/nginx/conf.d/ \
   && strip /usr/sbin/nginx* \
   && strip /usr/lib/nginx/modules/*.so \
-  && strip /usr/src/openssl/.openssl/bin/openssl \
+  && strip /opt/openssl/bin/openssl \
   \
   # https://tools.ietf.org/html/rfc7919
   # https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
