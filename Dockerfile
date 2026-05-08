@@ -49,12 +49,29 @@ ARG NGINX_USER_UID=100
 ARG NGINX_GROUP_GID=101
 
 # Generic CFLAGS across build
-ARG CFLAGS_OPT="-O3 -pipe -flto -ffat-lto-objects -falign-functions=32 -fdata-sections -ffunction-sections -fomit-frame-pointer -Wno-cast-function-type-mismatch -march=sandybridge"
-ARG LDFLAGS_OPT="-O3 -Wl,--strip-all -Wl,--as-needed -fuse-ld=lld"
+ARG CFLAGS_OPT="-O2 -pipe -flto -falign-functions=32 -fdata-sections -ffunction-sections -fomit-frame-pointer -Wno-cast-function-type-mismatch -march=sandybridge"
+ARG LDFLAGS_OPT="-flto -Wl,--strip-all -Wl,--as-needed -fuse-ld=lld"
 
 # NGINX Native CC Opt
-ARG CC_OPT="-O3 -fomit-frame-pointer -march=sandybridge -I /usr/src/quickjs -DTCP_FASTOPEN=23 -I/opt/openssl/include"
-ARG LD_OPT="-s -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--gc-sections -lstdc++ -L /usr/src/quickjs -ljemalloc -L/opt/openssl/lib64 -Wl,-rpath,/opt/openssl/lib64"
+ARG CC_OPT="-O2 \
+  -fomit-frame-pointer \
+  -march=sandybridge \
+  -I /usr/src/quickjs \
+  -DTCP_FASTOPEN=23 \
+  -I/opt/openssl/include \
+"
+ARG LD_OPT="-flto \
+  -s \
+  -Wl,-Bsymbolic-functions \
+  -Wl,-z,relro \
+  -Wl,-z,now \
+  -Wl,--gc-sections \
+  -L/usr/src/quickjs -lquickjs \
+  -ljemalloc \
+  -lstdc++ \
+  -L/opt/openssl/lib64 \
+  -Wl,-rpath,/opt/openssl/lib64 \
+"
 
 # https://nginx.org/en/docs/http/ngx_http_v3_module.html
 ARG CONFIG="\
@@ -147,7 +164,6 @@ ENV VERSION_OPENSSL=$VERSION_OPENSSL \
   SOURCE_OPENSSL=https://github.com/openssl/openssl/releases/download \
   CFLAGS="$CFLAGS_OPT" \
   CXXFLAGS="$CFLAGS_OPT" \
-  CPPFLAGS="$CFLAGS_OPT" \
   LDFLAGS="$LDFLAGS_OPT" \
   CC=clang \
   CXX=clang++
@@ -194,7 +210,9 @@ RUN \
   cd /usr/src/openssl && \
   tar -xzf ../openssl.tar.gz --strip-components=1 && \
   echo "Configuring and Building OpenSSL source code ..." && \
-  export LDFLAGS="${LDFLAGS} -Wl,-rpath,/opt/openssl/lib64" && \
+  CFLAGS="${CFLAGS} -O3 -fstack-protector-strong" \
+  CXXFLAGS="${CXXFLAGS} -O3 -fstack-protector-strong" \
+  LDFLAGS="${LDFLAGS} -Wl,-rpath,/opt/openssl/lib64" \
   ./config \
     --prefix=/opt/openssl \
     --openssldir=/opt/openssl \
@@ -206,8 +224,7 @@ RUN \
     enable-quic \
     enable-ktls \
     enable-ec_nistp_64_gcc_128 \
-    -DOPENSSL_NO_HEARTBEATS \
-    -fstack-protector-strong && \
+    -DOPENSSL_NO_HEARTBEATS && \
   make depend && \
   nproc | xargs -I % make -j% && \
   make install_sw
@@ -310,7 +327,7 @@ RUN \
     && git remote add origin https://github.com/bellard/quickjs \
     && git fetch --depth 1 origin ${QUICKJS_COMMIT} \
     && git checkout -q ${QUICKJS_COMMIT} \
-    && make libquickjs.a \
+    && make CC=clang AR=llvm-ar CONFIG_LTO=y libquickjs.a \
     && echo "quickjs $(cat VERSION)"
 
 RUN \
