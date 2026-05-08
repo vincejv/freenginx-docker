@@ -1,48 +1,47 @@
 # https://hg.nginx.org/nginx/file/tip/src/core/nginx.h
-ARG NGINX_VERSION=1.11.4
+ARG NGINX_VERSION
 
 # https://github.com/freenginx/nginx
-ARG NGINX_COMMIT=32b19e0a25e1b02172ff446fa0e196452876cacc
-ARG NGINX_REV=32b19e0
+ARG NGINX_COMMIT
+ARG NGINX_REV
 
 # https://github.com/google/ngx_brotli
-ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
+ARG NGX_BROTLI_COMMIT
 
 # https://github.com/google/boringssl
-#ARG BORINGSSL_COMMIT=b0ae229f686f2be70689584d1e1c6a727a2cdfab
+#ARG BORINGSSL_COMMIT
 
 # https://github.com/nginx/njs
-ARG NJS_VERSION=0.9.6
+ARG NJS_VERSION
 
 # https://github.com/bellard/quickjs
-ARG QUICKJS_COMMIT=fa628f8c523ecac8ce560c081411e91fcaba2d20
+ARG QUICKJS_COMMIT
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 # we want to have https://github.com/openresty/headers-more-nginx-module
-ARG HEADERS_MORE_VERSION=0.39
+ARG HEADERS_MORE_VERSION
 
 # https://github.com/leev/ngx_http_geoip2_module
-ARG GEOIP2_VERSION=3.4
+ARG GEOIP2_VERSION
 
 # https://github.com/aperezdc/ngx-fancyindex
-ARG FANCYINDEX_COMMIT=cbc0d3fca4f06414612de441399393d4b3bbb315
+ARG FANCYINDEX_COMMIT
 
 # https://github.com/tokers/zstd-nginx-module
-ARG ZSTDNGINX_COMMIT=f4ba115e0b0eaecde545e5f37db6aa18917d8f4b
+ARG ZSTDNGINX_COMMIT
 
 # https://www.openssl.org/source/
-#ARG VERSION_OPENSSL=openssl-3.5.2
-ARG VERSION_OPENSSL=openssl-4.0.0
+ARG VERSION_OPENSSL
 
 # https://curl.se/download/
-ARG CURL_VERSION=8.20.0
-ARG SHA256_CURL=fc5819cad3f9f5482669adcdc49a782c15f36d2a0715b395b06d9173593d2dc0
+ARG CURL_VERSION
+ARG SHA256_CURL
 
 # https://github.com/PCRE2Project/pcre2
-ARG PCRE_VERSION=10.47
+ARG PCRE_VERSION
 
 # https://github.com/zlib-ng/zlib-ng
-ARG ZLIB_VERSION=2.3.3
+ARG ZLIB_VERSION
 
 # NGINX UID / GID
 ARG NGINX_USER_UID=100

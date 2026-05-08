@@ -8,6 +8,20 @@ on:
 
 env:
   REGISTRY_IMAGE: vincejv/angie
+  NGINX_VERSION: 1.11.4
+  NGINX_COMMIT: 32b19e0a25e1b02172ff446fa0e196452876cacc
+  NGX_BROTLI_COMMIT: a71f9312c2deb28875acc7bacfdd5695a111aa53
+  NJS_VERSION: 0.9.6
+  QUICKJS_COMMIT: fa628f8c523ecac8ce560c081411e91fcaba2d20
+  HEADERS_MORE_VERSION: 0.39
+  GEOIP2_VERSION: 3.4
+  FANCYINDEX_COMMIT: cbc0d3fca4f06414612de441399393d4b3bbb315
+  ZSTDNGINX_COMMIT: f4ba115e0b0eaecde545e5f37db6aa18917d8f4b
+  VERSION_OPENSSL: openssl-4.0.0
+  CURL_VERSION: 8.20.0
+  SHA256_CURL: fc5819cad3f9f5482669adcdc49a782c15f36d2a0715b395b06d9173593d2dc0
+  PCRE_VERSION: 10.47
+  ZLIB_VERSION: 2.3.3
 
 jobs:
   build:
@@ -49,8 +63,24 @@ jobs:
           file: Dockerfile
           labels: ${{ steps.meta.outputs.labels }}
           push: true
+          build-args: |
+            NGINX_VERSION=${{ env.NGINX_VERSION }}
+            NGINX_COMMIT=${{ env.NGINX_COMMIT }}
+            NGX_BROTLI_COMMIT=${{ env.NGX_BROTLI_COMMIT }}
+            NJS_VERSION=${{ env.NJS_VERSION }}
+            QUICKJS_COMMIT=${{ env.QUICKJS_COMMIT }}
+            HEADERS_MORE_VERSION=${{ env.HEADERS_MORE_VERSION }}
+            GEOIP2_VERSION=${{ env.GEOIP2_VERSION }}
+            FANCYINDEX_COMMIT=${{ env.FANCYINDEX_COMMIT }}
+            ZSTDNGINX_COMMIT=${{ env.ZSTDNGINX_COMMIT }}
+            VERSION_OPENSSL=${{ env.VERSION_OPENSSL }}
+            CURL_VERSION=${{ env.CURL_VERSION }}
+            SHA256_CURL=${{ env.SHA256_CURL }}
+            PCRE_VERSION=${{ env.PCRE_VERSION }}
+            ZLIB_VERSION=${{ env.ZLIB_VERSION }}
+            NGINX_REV=${{ steps.commit.outputs.short }}
           tags: | 
             ${{ env.REGISTRY_IMAGE }}:latest
-            ${{ env.REGISTRY_IMAGE }}:${{ steps.commit.outputs.short }}
+            ${{ env.REGISTRY_IMAGE }}:${{ env.NGINX_VERSION }}-${{ steps.commit.outputs.short }}
             ghcr.io/${{ env.REGISTRY_IMAGE }}:latest
-            ghcr.io/${{ env.REGISTRY_IMAGE }}:${{ steps.commit.outputs.short }}
+            ghcr.io/${{ env.REGISTRY_IMAGE }}:${{ env.NGINX_VERSION }}-${{ steps.commit.outputs.short }}
