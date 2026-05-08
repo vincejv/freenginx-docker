@@ -1,0 +1,83 @@
+x-logging-template: &logging-template
+  logging:
+    options:
+      max-size: "20m"
+      max-file: "5"
+      compress: "true"
+
+x-service-template: &service-template
+  extra_hosts:
+      - "host.docker.internal:host-gateway"
+  restart: unless-stopped
+  stop_grace_period: 900s
+  <<: *logging-template
+
+services:
+  web:
+    image: ghcr.io/vincejv/angie
+    container_name: angie
+    network_mode: host
+    volumes:
+      - ./nginx/certs:/certs
+      - ./nginx/paths-enabled:/etc/nginx/paths-enabled
+      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+      - ./nginx/streams-enabled:/etc/nginx/streams-enabled
+      - ./nginx/snippets:/etc/nginx/snippets
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/passwd.d:/etc/nginx/passwd.d
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/theme:/etc/nginx/theme
+      - ./nginx/src:/usr/share/nginx/html
+      - ./nginx/logs:/logs
+      - ./nginx/prometheus_all.conf:/etc/nginx/prometheus_all.conf
+      - phpsocket:/var/run/php
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_RESOURCE
+      - SYS_ADMIN
+    environment:
+      TZ: Asia/Manila
+      DOMAIN: protected-by-ech.vincejv.com
+      CF_ZONE_ID: AAAABB-BCCC123323
+      CF_API_TOKEN: QZAQQQZZ-AAAABBBB-CCCCDDDD-EEEEFFFF
+      ECH_DIR: "/certs/ech"
+      SUBDOMAINS: "matrix.example.com auth.example.com www.example.com"
+      ECH_ROTATION: true
+    labels:
+      - sh.acme.autoload.domain=vincejv.com
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:1024 > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+      start_period: 20s
+    depends_on:
+      php-fpm:
+        condition: service_started
+      acme:
+        condition: service_started
+
+  php-fpm:
+    image: php:8-fpm
+    container_name: php-fpm
+    network_mode: host
+    volumes:
+      - ./nginx/src:/usr/share/nginx/html
+      - ./nginx/src_ipinfo:/usr/share/nginx/html_ipinfo
+      - ./php-fpm-docker.conf:/usr/local/etc/php-fpm.d/zz-docker.conf
+      - ./php-fpm.ini:/usr/local/etc/php/conf.d/zz-php-fpm-docker.ini
+      - phpsocket:/var/run
+
+  acme:
+    image: neilpang/acme.sh
+    container_name: acme.sh
+    network_mode: host
+    command: daemon
+    volumes:
+      - ./acmeout:/acme.sh
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - acmesh.env
+    <<: *service-template
+
