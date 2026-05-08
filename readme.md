@@ -4,11 +4,11 @@
 Stable and up-to-date [Angie](https://angie.software/en/) (NGINX-based web server) container image with:
 
 * [QUIC + HTTP/3 support](https://nginx.org/en/docs/http/ngx_http_v3_module.html)
-* [Google `brotli` compression](https://github.com/google/ngx_brotli)
+* [Google `brotli`](https://github.com/google/ngx_brotli) and [Meta's `zstd`](https://github.com/tokers/zstd-nginx-module) compression modules
 * [`njs` module](https://nginx.org/en/docs/njs/)
 * built in [ech-key-rotate](https://github.com/vincejv/angie-docker/blob/master/ech-rotate.sh)
 * Modern TLS configuration based on [Mozilla SSL recommendations](https://ssl-config.mozilla.org/) powered by OpenSSL 4.x
-* Compiled with LLVM against glibc for maximum performance in `x86_64`
+* Compiled with LLVM LTO & LLD against glibc for maximum performance in `x86_64`
 
 This project is currently migrating from FreeNGINX to Angie.
 Docker image name is now:
