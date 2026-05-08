@@ -194,6 +194,7 @@ RUN \
   cd /usr/src/openssl && \
   tar -xzf ../openssl.tar.gz --strip-components=1 && \
   echo "Configuring and Building OpenSSL source code ..." && \
+  export LDFLAGS="${LDFLAGS} -Wl,-rpath,/opt/openssl/lib64" && \
   ./config \
     --prefix=/opt/openssl \
     --openssldir=/opt/openssl \
