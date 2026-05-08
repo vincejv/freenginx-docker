@@ -392,6 +392,7 @@ COPY --from=base /opt/curl/bin/curl /usr/bin/curl
 COPY --from=base /opt/curl/lib /opt/curl/lib/
 
 # OpenSSL ECH binaries
+COPY --from=base /etc/ssl/certs /etc/ssl/certs
 COPY --from=base /opt/openssl/lib64 /opt/openssl/lib64
 COPY --from=base /opt/openssl/bin/openssl /usr/bin/openssl
 
@@ -402,14 +403,11 @@ RUN \
   && useradd --uid $NGINX_USER_UID --system --create-home --home-dir /var/cache/nginx --shell /usr/sbin/nologin --gid nginx nginx \
   && apt-get update \
   && apt-get install -y --no-install-recommends \
-    ca-certificates \
     jq \
     libjemalloc2 \
-    tzdata \
     libxml2 \
     libbrotli1 \
     libxslt1.1 \
-    libzstd1 \
   # Clean image
   && apt-get clean autoclean \
   && apt-get autoremove --yes \
