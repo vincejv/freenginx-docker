@@ -33,13 +33,13 @@ NGINX_PID=$!
 cleanup() {
     log "Stopping container..."
     [ -n "$ECH_PID" ] && kill -TERM "$ECH_PID" 2>/dev/null || true
-    kill -TERM "$NGINX_PID" 2>/dev/null || true
+    kill -QUIT "$NGINX_PID" 2>/dev/null || true
     wait "$NGINX_PID"
     log "Bye bye..."
     exit 0
 }
 
-trap 'cleanup' TERM INT
+trap 'cleanup' TERM INT QUIT
 
 # Wait until nginx is ready (max 10 seconds)
 TIMEOUT=10
